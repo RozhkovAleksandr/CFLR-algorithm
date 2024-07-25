@@ -29,6 +29,8 @@ public class Matrix {
 
         HashMap<String, DMatrixSparseCSC> labels = makeMatrix(grammar, edges, n);
 
+        DMatrixSparseCSC tmp = new DMatrixSparseCSC(n, n);
+
         boolean changed;
         do {
             changed = false;
@@ -43,16 +45,12 @@ public class Matrix {
                         DMatrixSparseCSC matrix2 = labels.get(key2);
                         DMatrixSparseCSC keyMatrix = labels.get(grammar.getRHSByLHS(combinedKey));
 
-                        DMatrixSparseCSC tmp = new DMatrixSparseCSC(n, n);
-
                         CommonOps_DSCC.mult(matrix1, matrix2, tmp);
 
-                        DMatrixSparseCSC tmp2 = new DMatrixSparseCSC(n, n);
+                        CommonOps_DSCC.add(1.0, tmp, 1.0, keyMatrix, tmp, null, null);
 
-                        CommonOps_DSCC.add(1.0, tmp, 1.0, keyMatrix, tmp2, null, null);
-
-                        if (keyMatrix.nz_length != tmp2.nz_length) {
-                            labels.put(grammar.getRHSByLHS(combinedKey), tmp2);
+                        if (keyMatrix.getNonZeroLength() != tmp.getNonZeroLength()) {
+                            labels.put(grammar.getRHSByLHS(combinedKey), tmp.copy());
                             changed = true;
                         }
                     }
