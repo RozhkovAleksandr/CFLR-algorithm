@@ -21,7 +21,9 @@ public class MatrixTest {
         grammar.addProductionRules("b", "B");
         grammar.addProductionRules("AB", "S");
 
-        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges);
+        Optimizations optimizations = new Optimizations(true, false, false, false, false);
+
+        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
 
         DMatrixSparseCSC matrixS = result.get("S");
         assertEquals(1, matrixS.get(0, 2));
@@ -40,7 +42,9 @@ public class MatrixTest {
         grammar.addProductionRules("pineapple", "B");
         grammar.addProductionRules("AB", "S");
 
-        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges);
+        Optimizations optimizations = new Optimizations(true, false, false, false, false);
+
+        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
 
         DMatrixSparseCSC matrixS = result.get("S");
         assertEquals(1, matrixS.get(0, 2));
@@ -59,7 +63,9 @@ public class MatrixTest {
         grammar.addProductionRules("b", "B");
         grammar.addProductionRules("AB", "S");
 
-        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges);
+        Optimizations optimizations = new Optimizations(true, false, false, false, false);
+
+        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
 
         DMatrixSparseCSC matrixS = result.get("S");
         boolean hasNonZeroElements = matrixS.getNumCols() != 0;
@@ -83,7 +89,9 @@ public class MatrixTest {
         grammar.addProductionRules("AB", "S");
         grammar.addProductionRules("BC", "S");
 
-        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges);
+        Optimizations optimizations = new Optimizations(true, false, false, false, false);
+
+        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
 
         DMatrixSparseCSC matrixS = result.get("S");
         boolean hasNonZeroElements = matrixS.getNumCols() != 0;
@@ -105,8 +113,9 @@ public class MatrixTest {
         grammar.addProductionRules("c", "C");
         grammar.addProductionRules("AB", "S");
 
-        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges);
+                Optimizations optimizations = new Optimizations(true, false, false, false, false);
 
+        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
         DMatrixSparseCSC matrixS = result.get("S");
         boolean hasNonZeroElements = matrixS.getNumCols() != 0;
         assertTrue(hasNonZeroElements);
@@ -124,10 +133,52 @@ public class MatrixTest {
         grammar.addProductionRules("b", "B");
         grammar.addProductionRules("AB", "S");
 
-        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges);
+        Optimizations optimizations = new Optimizations(true, false, false, false, false);
+  
+        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
 
         DMatrixSparseCSC matrixS = result.get("S");
         boolean hasNonZeroElements = matrixS.nz_length == 0;
         assertTrue(hasNonZeroElements); 
+    }
+
+    @Test
+    public void testSelfLoop() {
+        List<Edge> edges = Arrays.asList(
+                new Edge(1, 1, "a")
+        );
+
+        Grammar grammar = new Grammar();
+        grammar.addProductionRules("a", "A");
+        grammar.addProductionRules("AA", "S");
+
+        Optimizations optimizations = new Optimizations(true, false, false, false, false);
+
+        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
+
+        DMatrixSparseCSC matrixS = result.get("S");
+        boolean hasNonZeroElements = matrixS.nz_length == 1;
+        assertTrue(hasNonZeroElements);
+    }
+
+    @Test
+    public void testCyclicGraph() {
+        List<Edge> edges = Arrays.asList(
+                new Edge(1, 2, "a"),
+                new Edge(2, 1, "b")
+        );
+
+        Grammar grammar = new Grammar();
+        grammar.addProductionRules("a", "A");
+        grammar.addProductionRules("b", "B");
+        grammar.addProductionRules("AB", "S");
+
+        Optimizations optimizations = new Optimizations(true, false, false, false, false);
+
+        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
+
+        DMatrixSparseCSC matrixS = result.get("S");
+        boolean hasNonZeroElements = matrixS.nz_length != 0;
+        assertTrue(hasNonZeroElements);
     }
 }
