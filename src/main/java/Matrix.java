@@ -1,4 +1,5 @@
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,9 +14,10 @@ public class Matrix {
     public static void main(String[] args) {
         List<Edge> edges = Arrays.asList(
                 new Edge(1, 2, "a"),
-                new Edge(2, 3, "b"),
-                new Edge(3, 2, "a"),
-                new Edge(3, 4, "c")
+                new Edge(1, 3, "a"),
+                new Edge(2, 4, "b"),
+                new Edge(3, 4, "b"),
+                new Edge(4, 5, "c")
         );
 
         Grammar grammar = new Grammar();
@@ -23,6 +25,7 @@ public class Matrix {
         grammar.addProductionRules("b", "B");
         grammar.addProductionRules("c", "C");
         grammar.addProductionRules("AB", "S");
+        grammar.addProductionRules("BC", "S");
 
         Optimizations optimizations = new Optimizations(false, false, false, false, false);
 
@@ -58,14 +61,22 @@ public class Matrix {
 
                             CommonOps_DSCC.changeSign(old.get(key2), tmp1);
 
-                            CommonOps_DSCC.add(1.0, matrix2, 1.0, tmp1, tmp1, null, null);
+                            CommonOps_DSCC.add(1.0, matrix2, 1.0, tmp1.copy(), tmp1, null, null);
 
-                            CommonOps_DSCC.mult(old2, tmp1.copy(), tmp1);
+                            if (optimizations.isOpt2()) {
+                                tmp1 = multColumnByColumn(old2, tmp1.copy());
+                            } else {
+                                CommonOps_DSCC.mult(old2, tmp1.copy(), tmp1);
+                            }
 
                             CommonOps_DSCC.changeSign(old2, tmp2);
-                            CommonOps_DSCC.add(1.0, matrix1, 1.0, tmp2, tmp2, null, null);
+                            CommonOps_DSCC.add(1.0, matrix1, 1.0, tmp2.copy(), tmp2, null, null);
 
-                            CommonOps_DSCC.mult(tmp2.copy(), matrix2, tmp2);
+                            if (optimizations.isOpt2()) {
+                                tmp2 = multRowByRow(tmp2.copy(), matrix2);
+                            } else {
+                                CommonOps_DSCC.mult(tmp2.copy(), matrix2, tmp2);
+                            }
 
                             CommonOps_DSCC.add(1.0, tmp1, 1.0, tmp2, tmp2, null, null);
 
@@ -78,12 +89,12 @@ public class Matrix {
                             DMatrixSparseCSC matrix1 = labels.get(key1);
                             DMatrixSparseCSC matrix2 = labels.get(key2);
                             DMatrixSparseCSC keyMatrix = labels.get(grammar.getRHSByLHS(combinedKey));
-                            
-                            CommonOps_DSCC.mult(matrix1, matrix2, tmp1);
-                            
-                            CommonOps_DSCC.add(1.0, tmp1, 1.0, keyMatrix, tmp1, null, null);
 
-                            res = keyMatrix.getNonZeroLength() != tmp1.getNonZeroLength();
+                            CommonOps_DSCC.mult(matrix1, matrix2, tmp2);
+
+                            CommonOps_DSCC.add(1.0, tmp2.copy(), 1.0, keyMatrix, tmp2, null, null);
+
+                            res = keyMatrix.getNonZeroLength() != tmp2.getNonZeroLength();
                         }
 
                         if (res) {
@@ -103,22 +114,13 @@ public class Matrix {
             System.out.println("Matrix " + entry.getKey() + ":");
             entry.getValue().print();
 
-            // System.out.println(entry.getValue().nz_length);
-            for (int tmp12 : entry.getValue().col_idx) {
-                System.out.println(tmp12);
-            }
-            // for (double tmp12 : entry.getValue().nz_values) {
-            //     System.out.println(tmp12);
-            // }
-            // System.out.println(entry.getValue().nz_index(0, 2));
         }
 
         return labels;
     }
 
     private static DMatrixSparseCSC multRowByRow(DMatrixSparseCSC A, DMatrixSparseCSC B) {
-        // умножение по элементам не нулевым используя (nz_rows Указывает, какой строке соответствует конкретное ненулевое значение.)
-        DMatrixSparseCSC result = new DMatrixSparseCSC(A.numCols, A.numRows);
+        DMatrixSparseCSC result = new DMatrixSparseCSC(A.numRows, B.numCols);
 
         HashMap<Integer, Integer> freq = transform(A.nz_rows);
         int counter;
@@ -136,6 +138,32 @@ public class Matrix {
 
                     if (counter == freq.get(tmp)) {
                         break;
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private static DMatrixSparseCSC multColumnByColumn(DMatrixSparseCSC A, DMatrixSparseCSC B) {
+        DMatrixSparseCSC result = new DMatrixSparseCSC(A.numCols, A.numRows);
+
+        for (int j = 0; j < B.numCols; j++) {
+            int colStartB = B.col_idx[j];
+            int colEndB = B.col_idx[j + 1];
+
+            if (colStartB != colEndB) {
+                for (int bi = colStartB; bi < colEndB; bi++) {
+                    int rowB = B.nz_rows[bi];
+
+                    int colStartA = A.col_idx[rowB];
+                    int colEndA = A.col_idx[rowB + 1];
+
+                    for (int ai = colStartA; ai < colEndA; ai++) {
+                        int rowA = A.nz_rows[ai];
+
+                        result.set(rowA, j, 1);
                     }
                 }
             }
