@@ -1,5 +1,4 @@
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,10 +13,9 @@ public class Matrix {
     public static void main(String[] args) {
         List<Edge> edges = Arrays.asList(
                 new Edge(1, 2, "a"),
-                new Edge(1, 3, "a"),
-                new Edge(2, 4, "b"),
-                new Edge(3, 4, "b"),
-                new Edge(4, 5, "c")
+                new Edge(2, 3, "b"),
+                new Edge(3, 2, "a"),
+                new Edge(3, 4, "c")
         );
 
         Grammar grammar = new Grammar();
@@ -25,7 +23,6 @@ public class Matrix {
         grammar.addProductionRules("b", "B");
         grammar.addProductionRules("c", "C");
         grammar.addProductionRules("AB", "S");
-        grammar.addProductionRules("BC", "S");
 
         Optimizations optimizations = new Optimizations(false, false, false, false, false);
 
@@ -35,13 +32,15 @@ public class Matrix {
     public static HashMap<String, DMatrixSparseCSC> contextFreePathQuerying(Grammar grammar, List<Edge> edges, Optimizations optimizations) {
         int n = getNumbersNodes(grammar, edges);
 
-        List<Edge> edges1 = Arrays.asList();
-
         HashMap<String, DMatrixSparseCSC> labels = makeMatrix(grammar, edges, n);
-        HashMap<String, DMatrixSparseCSC> old = makeMatrix(grammar, edges1, n);
+        HashMap<String, DMatrixSparseCSC> old = makeMatrix(grammar, Arrays.asList(), n);
 
         DMatrixSparseCSC tmp1 = new DMatrixSparseCSC(n, n);
         DMatrixSparseCSC tmp2 = new DMatrixSparseCSC(n, n);
+        // delete tmp3
+        DMatrixSparseCSC tmp3 = new DMatrixSparseCSC(n, n);
+
+        int schitat = 0;
 
         boolean changed;
         do {
@@ -52,38 +51,50 @@ public class Matrix {
                     Grammar.Production production = grammar.getProductionRulesByLHS(combinedKey);
                     if (production != null) {
 
-                        boolean res;
-
                         if (optimizations.isOpt1()) {
-                            DMatrixSparseCSC matrix1 = labels.get(key1);
-                            DMatrixSparseCSC matrix2 = labels.get(key2);
                             DMatrixSparseCSC old2 = old.get(key1);
 
-                            CommonOps_DSCC.changeSign(old.get(key2), tmp1);
-
-                            CommonOps_DSCC.add(1.0, matrix2, 1.0, tmp1.copy(), tmp1, null, null);
-
-                            if (optimizations.isOpt2()) {
-                                tmp1 = multColumnByColumn(old2, tmp1.copy());
-                            } else {
-                                CommonOps_DSCC.mult(old2, tmp1.copy(), tmp1);
-                            }
-
-                            CommonOps_DSCC.changeSign(old2, tmp2);
-                            CommonOps_DSCC.add(1.0, matrix1, 1.0, tmp2.copy(), tmp2, null, null);
+                            System.out.println(++schitat);
+        
+                            DMatrixSparseCSC matrix1 = labels.get(key1);
+                            DMatrixSparseCSC matrix2 = labels.get(key2);
 
                             if (optimizations.isOpt2()) {
-                                tmp2 = multRowByRow(tmp2.copy(), matrix2);
-                            } else {
-                                CommonOps_DSCC.mult(tmp2.copy(), matrix2, tmp2);
+                                tmp1 = multColumnByColumn(old2, matrix2);
+                            }
+                            else {
+                                CommonOps_DSCC.mult(old2, matrix2, tmp1);
                             }
 
-                            CommonOps_DSCC.add(1.0, tmp1, 1.0, tmp2, tmp2, null, null);
+                            for (String key : labels.keySet()) {
+                                tmp3 = old.get(key).copy();
+                                
+                                CommonOps_DSCC.add(1.0, labels.get(key), 1.0, old.get(key), tmp2, null, null);
+                                
+                                old.put(key, tmp2.copy());
 
-                            CommonOps_DSCC.removeZeros(tmp2, 0);
-                            CommonOps_DSCC.removeZeros(old.get(grammar.getRHSByLHS(combinedKey)), 0);
+                                if (tmp3.nz_length != old.get(key).nz_length) {
+                                    changed = true;
+                                }
 
-                            res = tmp2.nz_length > old.get(grammar.getRHSByLHS(combinedKey)).nz_length;
+                            }
+
+                            if (optimizations.isOpt2()) {
+                                tmp2 = multRowByRow(matrix1, old.get(key2));
+                            }
+                            else {
+                                CommonOps_DSCC.mult(matrix1, old.get(key2), tmp2);
+                            }
+
+                            CommonOps_DSCC.add(1.0, tmp1, 1.0, tmp2.copy(), tmp2, null, null);
+
+                            CommonOps_DSCC.changeSign(old.get(grammar.getRHSByLHS(combinedKey)), tmp3);
+
+                            CommonOps_DSCC.add(1.0, tmp2.copy(), 1.0, tmp3, tmp2, null, null);
+
+                            tmp2 = removeNonPositiveElements(tmp2.copy());
+
+                            labels.put(grammar.getRHSByLHS(combinedKey), tmp2.copy());
 
                         } else {
                             DMatrixSparseCSC matrix1 = labels.get(key1);
@@ -94,32 +105,55 @@ public class Matrix {
 
                             CommonOps_DSCC.add(1.0, tmp2.copy(), 1.0, keyMatrix, tmp2, null, null);
 
-                            res = keyMatrix.getNonZeroLength() != tmp2.getNonZeroLength();
-                        }
-
-                        if (res) {
-                            labels.put(grammar.getRHSByLHS(combinedKey), tmp2.copy());
-                            changed = true;
-
-                            for (String key : labels.keySet()) {
-                                old.put(key, labels.get(key).copy());
-                            }
+                            if (keyMatrix.getNonZeroLength() != tmp2.getNonZeroLength()) {
+                                changed = true;
+                                labels.put(grammar.getRHSByLHS(combinedKey), tmp2.copy());
+                            }                      
                         }
                     }
                 }
             }
         } while (changed);
 
-        for (HashMap.Entry<String, DMatrixSparseCSC> entry : labels.entrySet()) {
-            System.out.println("Matrix " + entry.getKey() + ":");
-            entry.getValue().print();
+        HashMap<String, DMatrixSparseCSC> current;
 
+        if (optimizations.isOpt1()) {
+            current = old;
+        }
+        else {
+            current = labels;
         }
 
-        return labels;
+        for (HashMap.Entry<String, DMatrixSparseCSC> entry : current.entrySet()) {
+            System.out.println("Matrix " + entry.getKey() + ":");
+            entry.getValue().print();
+        }
+
+        return current; 
     }
 
-    private static DMatrixSparseCSC multRowByRow(DMatrixSparseCSC A, DMatrixSparseCSC B) {
+    private static DMatrixSparseCSC removeNonPositiveElements(DMatrixSparseCSC matrix) {
+        DMatrixSparseCSC positiveMatrix = new DMatrixSparseCSC(matrix.numRows, matrix.numCols);
+
+        for (int col = 0; col < matrix.numCols; col++) {
+            int colStart = matrix.col_idx[col];
+            int colEnd = matrix.col_idx[col + 1];
+
+            for (int idx = colStart; idx < colEnd; idx++) {
+                int row = matrix.nz_rows[idx];
+                double value = matrix.nz_values[idx];
+
+                if (value > 0) {
+                    positiveMatrix.set(row, col, 1);
+                }
+            }
+        }
+
+        return positiveMatrix;
+    }
+
+    // TODO ПОБЫСТРЕЕ
+    private static DMatrixSparseCSC multRowByRow(DMatrixSparseCSC A, DMatrixSparseCSC B) { 
         DMatrixSparseCSC result = new DMatrixSparseCSC(A.numRows, B.numCols);
 
         HashMap<Integer, Integer> freq = transform(A.nz_rows);
@@ -132,7 +166,7 @@ public class Matrix {
                     counter++;
                     for (int j = 0; j < B.numCols; j++) {
                         if (B.get(k, j) == 1) {
-                            result.set(k, j, 1);
+                            result.set(tmp, j, 1);
                         }
                     }
 

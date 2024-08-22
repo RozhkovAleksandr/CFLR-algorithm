@@ -9,6 +9,12 @@ import org.junit.jupiter.api.Test;
 
 public class MatrixTest {
 
+    private Optimizations optStandart() {
+        Optimizations optimizations = new Optimizations(true, false, false, false, false);
+
+        return optimizations;
+    }
+
     @Test
     public void testSimpleWords() {
         List<Edge> edges = Arrays.asList(
@@ -21,12 +27,12 @@ public class MatrixTest {
         grammar.addProductionRules("b", "B");
         grammar.addProductionRules("AB", "S");
 
-        Optimizations optimizations = new Optimizations(true, false, false, false, false);
+        Optimizations optimizations = optStandart();
 
         HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
 
         DMatrixSparseCSC matrixS = result.get("S");
-        assertEquals(1, matrixS.get(0, 2));
+        assertEquals(1, matrixS.getNonZeroLength());
     }
 
     @Test
@@ -42,20 +48,46 @@ public class MatrixTest {
         grammar.addProductionRules("pineapple", "B");
         grammar.addProductionRules("AB", "S");
 
-        Optimizations optimizations = new Optimizations(true, false, false, false, false);
+        Optimizations optimizations = optStandart();
 
         HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
 
         DMatrixSparseCSC matrixS = result.get("S");
-        assertEquals(1, matrixS.get(0, 2));
+        assertEquals(1, matrixS.getNonZeroLength());
     }
 
     @Test
     public void testEmpty() {
         List<Edge> edges = Arrays.asList(
+                new Edge(1, 2, "a"),
+                new Edge(2, 3, "a"),
+                new Edge(4, 5, "b")
+        );
+
+        Grammar grammar = new Grammar();
+        grammar.addProductionRules("a", "A");
+        grammar.addProductionRules("b", "B");
+        grammar.addProductionRules("AB", "S");
+
+        Optimizations optimizations = optStandart();
+
+        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
+
+        DMatrixSparseCSC matrixS = result.get("S");
+        boolean hasNonZeroElements = matrixS.nz_length == 0;
+        assertTrue(hasNonZeroElements);  
+    }
+
+    @Test
+    public void testLeftMany() {
+        List<Edge> edges = Arrays.asList(
             new Edge(1, 2, "a"),
             new Edge(2, 3, "a"),
-            new Edge(4, 5, "b")
+            new Edge(4, 5, "b"),
+            new Edge(5, 5, "b"),
+            new Edge(1, 5, "b"),
+            new Edge(2, 5, "b"),
+            new Edge(3, 5, "b")
         );
         
         Grammar grammar = new Grammar();
@@ -63,13 +95,13 @@ public class MatrixTest {
         grammar.addProductionRules("b", "B");
         grammar.addProductionRules("AB", "S");
 
-        Optimizations optimizations = new Optimizations(true, false, false, false, false);
+        Optimizations optimizations = optStandart();
 
         HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
 
         DMatrixSparseCSC matrixS = result.get("S");
-        boolean hasNonZeroElements = matrixS.getNumCols() != 0;
-        assertTrue(hasNonZeroElements);  
+        boolean elem = matrixS.nz_length == 2;
+        assertTrue(elem);
     }
 
     @Test
@@ -89,12 +121,12 @@ public class MatrixTest {
         grammar.addProductionRules("AB", "S");
         grammar.addProductionRules("BC", "S");
 
-        Optimizations optimizations = new Optimizations(true, false, false, false, false);
+        Optimizations optimizations = optStandart();
 
         HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
 
         DMatrixSparseCSC matrixS = result.get("S");
-        boolean hasNonZeroElements = matrixS.getNumCols() != 0;
+        boolean hasNonZeroElements = matrixS.nz_length == 3;
         assertTrue(hasNonZeroElements);
     }
 
@@ -113,11 +145,11 @@ public class MatrixTest {
         grammar.addProductionRules("c", "C");
         grammar.addProductionRules("AB", "S");
 
-                Optimizations optimizations = new Optimizations(true, false, false, false, false);
+                Optimizations optimizations = optStandart();
 
         HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
         DMatrixSparseCSC matrixS = result.get("S");
-        boolean hasNonZeroElements = matrixS.getNumCols() != 0;
+        boolean hasNonZeroElements = matrixS.getNonZeroLength() == 2;
         assertTrue(hasNonZeroElements);
     }
 
@@ -133,7 +165,7 @@ public class MatrixTest {
         grammar.addProductionRules("b", "B");
         grammar.addProductionRules("AB", "S");
 
-        Optimizations optimizations = new Optimizations(true, false, false, false, false);
+        Optimizations optimizations = optStandart();
   
         HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
 
@@ -152,7 +184,7 @@ public class MatrixTest {
         grammar.addProductionRules("a", "A");
         grammar.addProductionRules("AA", "S");
 
-        Optimizations optimizations = new Optimizations(true, false, false, false, false);
+        Optimizations optimizations = optStandart();
 
         HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
 
@@ -173,7 +205,7 @@ public class MatrixTest {
         grammar.addProductionRules("b", "B");
         grammar.addProductionRules("AB", "S");
 
-        Optimizations optimizations = new Optimizations(true, false, false, false, false);
+        Optimizations optimizations = optStandart();
 
         HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
 
