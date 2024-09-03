@@ -2,13 +2,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import org.ejml.data.DMatrixSparseCSC;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 public class MatrixTest {
-
     private Optimizations optStandart() {
         Optimizations optimizations = new Optimizations(true, false, false, false, false);
 
@@ -29,10 +27,10 @@ public class MatrixTest {
 
         Optimizations optimizations = optStandart();
 
-        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
+        HashMap<String, AbstractMatrix> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
 
-        DMatrixSparseCSC matrixS = result.get("S");
-        assertEquals(1, matrixS.getNonZeroLength());
+        AbstractMatrix matrixS = result.get("S");
+        assertEquals(1, matrixS.nz_length());   
     }
 
     @Test
@@ -50,10 +48,10 @@ public class MatrixTest {
 
         Optimizations optimizations = optStandart();
 
-        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
+        HashMap<String, AbstractMatrix> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
 
-        DMatrixSparseCSC matrixS = result.get("S");
-        assertEquals(1, matrixS.getNonZeroLength());
+        AbstractMatrix matrixS = result.get("S");
+        assertEquals(1, matrixS.nz_length());
     }
 
     @Test
@@ -71,10 +69,10 @@ public class MatrixTest {
 
         Optimizations optimizations = optStandart();
 
-        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
+        HashMap<String, AbstractMatrix> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
 
-        DMatrixSparseCSC matrixS = result.get("S");
-        boolean hasNonZeroElements = matrixS.nz_length == 0;
+        AbstractMatrix matrixS = result.get("S");
+        boolean hasNonZeroElements = matrixS.nz_length() == 0;
         assertTrue(hasNonZeroElements);  
     }
 
@@ -97,10 +95,10 @@ public class MatrixTest {
 
         Optimizations optimizations = optStandart();
 
-        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
+        HashMap<String, AbstractMatrix> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
 
-        DMatrixSparseCSC matrixS = result.get("S");
-        boolean elem = matrixS.nz_length == 2;
+        AbstractMatrix matrixS = result.get("S");
+        boolean elem = matrixS.nz_length() == 2;
         assertTrue(elem);
     }
 
@@ -123,10 +121,10 @@ public class MatrixTest {
 
         Optimizations optimizations = optStandart();
 
-        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
+        HashMap<String, AbstractMatrix> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
 
-        DMatrixSparseCSC matrixS = result.get("S");
-        boolean hasNonZeroElements = matrixS.nz_length == 3;
+        AbstractMatrix matrixS = result.get("S");
+        boolean hasNonZeroElements = matrixS.nz_length() == 3;
         assertTrue(hasNonZeroElements);
     }
 
@@ -145,11 +143,11 @@ public class MatrixTest {
         grammar.addProductionRules("c", "C");
         grammar.addProductionRules("AB", "S");
 
-                Optimizations optimizations = optStandart();
+        Optimizations optimizations = optStandart();
 
-        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
-        DMatrixSparseCSC matrixS = result.get("S");
-        boolean hasNonZeroElements = matrixS.getNonZeroLength() == 2;
+        HashMap<String, AbstractMatrix> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
+        AbstractMatrix matrixS = result.get("S");
+        boolean hasNonZeroElements = matrixS.nz_length() == 2;
         assertTrue(hasNonZeroElements);
     }
 
@@ -167,10 +165,10 @@ public class MatrixTest {
 
         Optimizations optimizations = optStandart();
   
-        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
+        HashMap<String, AbstractMatrix> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
 
-        DMatrixSparseCSC matrixS = result.get("S");
-        boolean hasNonZeroElements = matrixS.nz_length == 0;
+        AbstractMatrix matrixS = result.get("S");
+        boolean hasNonZeroElements = matrixS.nz_length() == 0;
         assertTrue(hasNonZeroElements); 
     }
 
@@ -186,10 +184,10 @@ public class MatrixTest {
 
         Optimizations optimizations = optStandart();
 
-        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
+        HashMap<String, AbstractMatrix> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
 
-        DMatrixSparseCSC matrixS = result.get("S");
-        boolean hasNonZeroElements = matrixS.nz_length == 1;
+        AbstractMatrix matrixS = result.get("S");
+        boolean hasNonZeroElements = matrixS.nz_length() == 1;
         assertTrue(hasNonZeroElements);
     }
 
@@ -207,10 +205,10 @@ public class MatrixTest {
 
         Optimizations optimizations = optStandart();
 
-        HashMap<String, DMatrixSparseCSC> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
+        HashMap<String, AbstractMatrix> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
 
-        DMatrixSparseCSC matrixS = result.get("S");
-        boolean hasNonZeroElements = matrixS.nz_length != 0;
+        AbstractMatrix matrixS = result.get("S");
+        boolean hasNonZeroElements = matrixS.nz_length() != 0;
         assertTrue(hasNonZeroElements);
     }
 }
