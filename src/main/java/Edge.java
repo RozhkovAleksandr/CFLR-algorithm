@@ -2,7 +2,7 @@ public class Edge {
     private final int start;
     private final int finish;
     private final String label;
-    
+    private Integer n = null;    
 
     public Edge(int start, int finish, String label) {
 
@@ -22,5 +22,17 @@ public class Edge {
 
     public String getLabel() {
         return label;
+    }
+
+    public void setN(int value) {
+        this.n = value; 
+    }
+
+    public boolean hasN() {
+        return n != null;
+    }
+
+    public int getN() {
+        return n;
     }
 }

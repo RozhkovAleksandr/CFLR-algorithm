@@ -1,4 +1,8 @@
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,32 +13,27 @@ import org.ejml.data.DMatrixSparseCSC;
 
 public class Matrix {
 
+    static int block_size = 0;
+    static int n = 0;
+
     public static void main(String[] args) {
-        List<Edge> edges = Arrays.asList(
-                new Edge(1, 2, "a"),
-                new Edge(1, 3, "a"),
-                new Edge(2, 4, "b"),
-                new Edge(3, 4, "b"),
-                new Edge(4, 5, "c")
-        );
-
         Grammar grammar = new Grammar();
-        grammar.addProductionRules("a", "A");
-        grammar.addProductionRules("b", "B");
-        grammar.addProductionRules("c", "C");
-        grammar.addProductionRules("AB", "S");
-        grammar.addProductionRules("BC", "S");
+        grammar.addProductionRules("A a");
+        grammar.addProductionRules("B b");
+        grammar.addProductionRules("S A B");
 
-        Optimizations optimizations = new Optimizations(true, true, false, false, false);
+        String filename = "C:\\Users\\Conff\\vscode\\JavaEducation\\CFLR-algorithm\\src\\main\\java\\filename.txt";
+        List<Edge> edges = readEdgesFromFile(filename, grammar);
+
+
+        Optimizations optimizations = new Optimizations(false, false, false, false, false);
 
         contextFreePathQuerying(grammar, edges, optimizations);
     }
 
     public static HashMap<String, AbstractMatrix> contextFreePathQuerying(Grammar grammar, List<Edge> edges, Optimizations optimizations) {
-        int n = getNumbersNodes(grammar, edges);
-
-        HashMap<String, AbstractMatrix> labels = makeMatrix(grammar, edges, n, optimizations);
-        HashMap<String, AbstractMatrix> old = makeMatrix(grammar, Arrays.asList(), n, optimizations);
+        HashMap<String, AbstractMatrix> labels = makeMatrix(grammar, edges, optimizations);
+        HashMap<String, AbstractMatrix> old = makeMatrix(grammar, Arrays.asList(), optimizations);
 
         AbstractMatrix tmp1;
         AbstractMatrix tmp2;
@@ -47,6 +46,7 @@ public class Matrix {
             // delete tmp3
             tmp3 = new FormatMatrix(new DMatrixSparseCSC(n, n));
         } else {
+            // OPTIMIZATION 444444444444444444444444444444
             tmp1 = new BaseMatrix(new DMatrixSparseCSC(n, n));
             tmp2 = new BaseMatrix(new DMatrixSparseCSC(n, n));
             // delete tmp3
@@ -59,7 +59,7 @@ public class Matrix {
             for (String key1 : labels.keySet()) {
                 for (String key2 : labels.keySet()) {
                     String combinedKey = key1 + key2;
-                    Grammar.Production production = grammar.getProductionRulesByLHS(combinedKey);
+                    String production = grammar.getRHSByLHS(combinedKey);
                     if (production != null) {
 
                         if (optimizations.isOpt1()) {
@@ -97,7 +97,6 @@ public class Matrix {
                                 changed = true;
                             }
 
-
                             labels.put(grammar.getRHSByLHS(combinedKey), tmp2.copy());
 
                         } else {
@@ -127,11 +126,10 @@ public class Matrix {
 
         for (HashMap.Entry<String, AbstractMatrix> entry : current.entrySet()) {
             System.out.println("Matrix " + entry.getKey() + ":");
-            if (optimizations.isOpt3()) {
+            if (optimizations.isOpt3() && !optimizations.isOpt4()) {
                 entry.getValue().toOne(tmp1);
                 tmp1.print();
-            }
-            else {
+            } else {
                 entry.getValue().print();
             }
         }
@@ -139,24 +137,34 @@ public class Matrix {
         return current;
     }
 
-    private static HashMap<String, AbstractMatrix> makeMatrix(Grammar grammar, List<Edge> edges, int n, Optimizations optimizations) {
+    private static HashMap<String, AbstractMatrix> makeMatrix(Grammar grammar, List<Edge> edges, Optimizations optimizations) {
         HashMap<String, AbstractMatrix> labels = new HashMap<>();
-
         for (String key : grammar.getLetters()) {
             AbstractMatrix matrix;
-            if (optimizations.isOpt3()) {
-                if (!edges.equals(Arrays.asList())) {
-                    matrix = new BaseMatrix(new DMatrixSparseCSC(n, n));
+            if (optimizations.isOpt4()) {
+                if (grammar.getindexedLetters(key)) {
+                    // заюзай функцию isindexwed и надо еще написать прием в виде файлика
+                    // blocksize
+                    matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n, n));
                 }
                 else {
-                    matrix = new LazyMatrix(new DMatrixSparseCSC(n, n));
+                    matrix = new CellBlockMatrix(new DMatrixSparseCSC(n, n));
                 }
-            }
-            else {
-                if (optimizations.isOpt2()) {
-                    matrix = new FormatMatrix(new DMatrixSparseCSC(n, n));
-                } else {
-                    matrix = new BaseMatrix(new DMatrixSparseCSC(n, n));
+            } else {
+                if (optimizations.isOpt3()) {
+                    if (!edges.equals(Arrays.asList())) {
+                        matrix = new BaseMatrix(new DMatrixSparseCSC(n, n));
+                    }
+                    else {
+                        matrix = new LazyMatrix(new DMatrixSparseCSC(n, n));
+                    }
+                }
+                else {
+                    if (optimizations.isOpt2()) {
+                        matrix = new FormatMatrix(new DMatrixSparseCSC(n, n));
+                    } else {
+                        matrix = new BaseMatrix(new DMatrixSparseCSC(n, n));
+                    }
                 }
             }
             labels.put(key, matrix);
@@ -168,28 +176,52 @@ public class Matrix {
             String label = edge.getLabel();
             if (from <= n && to <= n) {
                 labels.get(label).set(from - 1, to - 1, 1);
-
+                
                 String rhs = grammar.getRHSByLHS(label);
                 if (rhs != null) {
                     labels.get(rhs).set(from - 1, to - 1, 1);
                 }
             }
         }
-
         return labels;
     }
 
-    private static int getNumbersNodes(Grammar grammar, List<Edge> edges) {
-        for (Edge edge : edges) {
-            grammar.addLetters(edge.getLabel());
-        }
+    private static List<Edge> readEdgesFromFile(String filename, Grammar grammar) {
+        List<Edge> edges = new ArrayList<>();
 
+        // для поиска размеров будущих блоков
         Set<Integer> nums = new HashSet<>();
-        for (Edge edge : edges) {
-            nums.add(edge.getStart());
-            nums.add(edge.getFinish());
+        int counter = 1;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.trim().split("\\s+");
+                if (parts.length >= 3 && parts.length <= 4) {
+                    int start = Integer.parseInt(parts[0]);
+                    int finish = Integer.parseInt(parts[1]);
+                    nums.add(start);
+                    nums.add(finish);
+                    String label = parts[2];
+                    grammar.addLetters(label);
+                    Edge edge = new Edge(start, finish, label);
+                    if (parts.length == 4) {
+                        grammar.addindexedLetters(label);
+                        edge.setN(Integer.parseInt(parts[3]));
+                        counter = Math.max(Integer.parseInt(parts[3]), counter);
+                    }
+                    edges.add(edge);
+                } else {
+                    System.err.println("Invalid line format: " + line);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading file: " + e.getMessage());
         }
 
-        return nums.size();
+        n = nums.size();
+        block_size = counter;
+
+        return edges;
     }
 }
