@@ -9,38 +9,41 @@ public class CellBlockMatrix extends BlockMatrix {
     }
 
     @Override
-    public void multiply(AbstractMatrix other, AbstractMatrix result) {
+    public void multiply(AbstractMatrix other, AsistantMatrix asistant, int n, String production) {
         if (isCell(other)) {
-            CommonOps_DSCC.mult(matrix, other.matrix, result.matrix);
+            CommonOps_DSCC.mult(matrix, other.matrix, asistant.getMatrix("cell", n).matrix);
         }
         else {
-            CommonOps_DSCC.mult(matrix, BlockHelper.revolutionToTheHorizon(other.matrix), result.matrix);
+            CommonOps_DSCC.mult(matrix, BlockHelper.revolutionToTheHorizon(other.matrix), asistant.getMatrix("horizon", n).matrix);
+            if (!production.endsWith("_i")) {
+                asistant.putMatrix("horizon", n, BlockHelper.reverseVectorBlockMatrix(asistant.getMatrix(n)));
+            }
         }
     }
 
     @Override
-    public void add(AbstractMatrix other, AbstractMatrix result) {
+    public void add(AbstractMatrix other, AsistantMatrix asistant, int n) {
         if (isCell(other)) {
-            CommonOps_DSCC.add(1.0, this.matrix, 1.0, other.matrix, result.matrix, null, null);
+            CommonOps_DSCC.add(1.0, this.matrix, 1.0, other.matrix, asistant.getMatrix("cell", n).matrix, null, null);
         }
         else {
-            CommonOps_DSCC.add(1.0, this.matrix, 1.0, BlockHelper.reverse(other.matrix), result.matrix, null, null);
+            CommonOps_DSCC.add(1.0, this.matrix, 1.0, BlockHelper.reverse(other.matrix), asistant.getMatrix("cell", n).matrix, null, null);
         }
     }
 
     @Override
     public void subtraction(AbstractMatrix other, AbstractMatrix tmp) {
         if (!isCell(other)) {
-            throw new IllegalArgumentException("Матрица 'other' не является клеткой.");
+            throw new IllegalArgumentException("The 'other' matrix is not a cell.");
         }
 
         CommonOps_DSCC.changeSign(this.matrix, tmp.matrix);
-        other.copy().add(tmp, other);
+        CommonOps_DSCC.add(1.0, other.copy().matrix, 1.0, tmp.matrix, other.matrix, null, null);
     }
 
     @Override
     public AbstractMatrix removeNonPositiveElements() {
-        AbstractMatrix positiveMatrix = new CellBlockMatrix(new DMatrixSparseCSC(matrix.getNumCols(), matrix.getNumCols()));
+        AbstractMatrix positiveMatrix = new CellBlockMatrix(new DMatrixSparseCSC(matrix.numRows, matrix.numCols));
         DMatrixSparseCSC tmp = this.matrix.copy();
 
 
@@ -63,7 +66,7 @@ public class CellBlockMatrix extends BlockMatrix {
 
     @Override
     public AbstractMatrix copy() {
-        CellBlockMatrix copy = new CellBlockMatrix(new DMatrixSparseCSC(matrix.getNumCols(), matrix.getNumCols()));
+        CellBlockMatrix copy = new CellBlockMatrix(new DMatrixSparseCSC(matrix.numRows, matrix.numCols));
         copy.matrix = this.matrix.copy();
         return copy;
     }

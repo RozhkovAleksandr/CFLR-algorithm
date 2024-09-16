@@ -9,18 +9,18 @@ class BaseMatrix extends AbstractMatrix {
     }
 
     @Override
-    public void multiply(AbstractMatrix other, AbstractMatrix result) {
+    public void multiply(AbstractMatrix other, AsistantMatrix asistant, int n, String production) {
         if (other instanceof LazyMatrix) {
-            ((LazyMatrix) other).multiplyOther(matrix, result);
+            ((LazyMatrix) other).multiplyOther(matrix, asistant.getMatrix(n));
         }
         else {
-            CommonOps_DSCC.mult(this.matrix, other.matrix, result.matrix);
+            CommonOps_DSCC.mult(this.matrix, other.matrix, asistant.getMatrix(n).matrix);
         }
     }
 
     @Override
-    public void add(AbstractMatrix other, AbstractMatrix result) {
-        CommonOps_DSCC.add(1.0, this.matrix, 1.0, other.matrix, result.matrix, null, null);
+    public void add(AbstractMatrix other, AsistantMatrix asistant, int n) {
+        CommonOps_DSCC.add(1.0, this.matrix, 1.0, other.matrix, asistant.getMatrix(n).matrix, null, null);
     }
 
     @Override
@@ -33,7 +33,7 @@ class BaseMatrix extends AbstractMatrix {
     @Override
     public void subtraction(AbstractMatrix other, AbstractMatrix tmp) {
         CommonOps_DSCC.changeSign(this.matrix, tmp.matrix);
-        other.copy().add(tmp, other);
+        CommonOps_DSCC.add(1.0, other.copy().matrix, 1.0, tmp.matrix, other.matrix, null, null);
     }
 
     @Override

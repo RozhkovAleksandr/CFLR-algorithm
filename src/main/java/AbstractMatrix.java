@@ -9,9 +9,9 @@ abstract public class AbstractMatrix {
         this.matrix = matrix;
     }
 
-    public abstract void multiply(AbstractMatrix other, AbstractMatrix result);
+    public abstract void multiply(AbstractMatrix other, AsistantMatrix asistant, int n, String production);
 
-    public abstract void add(AbstractMatrix other, AbstractMatrix result);
+    public abstract void add(AbstractMatrix other, AsistantMatrix asistant, int n);
 
     public int nz_length() {
         return matrix.nz_length;

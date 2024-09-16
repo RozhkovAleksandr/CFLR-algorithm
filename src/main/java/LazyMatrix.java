@@ -18,12 +18,12 @@ class LazyMatrix extends AbstractMatrix {
 
 
     @Override
-    public void multiply(AbstractMatrix other, AbstractMatrix result) {
+    public void multiply(AbstractMatrix other, AsistantMatrix asistant, int n, String production) {
         DMatrixSparseCSC tmp = new DMatrixSparseCSC(other.matrix.numCols, other.matrix.numCols);
 
         for (DMatrixSparseCSC m : matrices) {
             CommonOps_DSCC.mult(m, other.matrix, tmp);
-            piecewiseAdd(tmp, result.copy().matrix, result.matrix);
+            piecewiseAdd(tmp, asistant.getMatrix(n).copy().matrix, asistant.getMatrix(n).matrix);
         }
     }
 
@@ -69,7 +69,7 @@ class LazyMatrix extends AbstractMatrix {
     }
 
     @Override
-    public void add(AbstractMatrix other, AbstractMatrix result) {
+    public void add(AbstractMatrix other, AsistantMatrix asistant, int n) {
         int border;
         DMatrixSparseCSC tmp = new DMatrixSparseCSC(other.matrix.numCols, other.matrix.numCols);
 
@@ -78,7 +78,8 @@ class LazyMatrix extends AbstractMatrix {
             border = other.nz_length() * b;
             f = false;
             for (DMatrixSparseCSC m : matrices) {
-                if (m.nz_length * b >= other.nz_length() || border >= m.nz_length) {
+                if (m.nz_length * b >= other.nz_length() || border >= m.nz_length) { 
+                    // Удали эту хуйню и поставь обычное сложение
                     piecewiseAdd(m, other.matrix, tmp);
                     matrices.remove(m);
 

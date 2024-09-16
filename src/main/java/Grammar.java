@@ -5,8 +5,6 @@ import java.util.Set;
 public class Grammar {
     private final Set<String> letters;
     private final Set<Production> productionRules;
-    private Set<String> indexedLetters;
-    // базово класть при rhs в lhs_L
     private Set<String> lhsL;
     private Set<String> lhsR;
         
@@ -23,7 +21,7 @@ public class Grammar {
             lhsL.add(parts[1]);
             lhsR.add(parts[2]);
             String lhs = parts[1] + parts[2];
-            productionRules.add(new Production(lhs, parts[0]));
+            productionRules.add(new Production(lhs, parts[1], parts[2], parts[0]));
             addLetters(parts[0]);
             addLetters(parts[1]);
             addLetters(parts[2]);
@@ -35,16 +33,12 @@ public class Grammar {
         }
     }
 
+    public Set<Production> getProductions() {
+        return productionRules;
+    }
+
     public void addLetters(String l) {
         letters.add(l); 
-    }
-
-    public void addindexedLetters(String l) {
-        indexedLetters.add(l); 
-    }
-
-    public boolean getindexedLetters(String l) {
-        return indexedLetters.contains(l);
     }
     
     public Set<String> getLetters() {
@@ -60,19 +54,42 @@ public class Grammar {
         return null;
     }
 
+    public boolean isLhsR(String lhsR) {
+        return lhsR.contains(lhsR);
+    }
+
     // реализуй метод возвращение продукций. Для поиска продукций
 
     public class Production {
         String lhs;
+        String lhsL;
+        String lhsR;
         String rhs;
+
+        Production(String lhs, String lhsL, String lhsR, String rhs) {
+            this.lhs = lhs;
+            this.lhsL = lhsL;
+            this.lhsR = lhsR;
+            this.rhs = rhs;
+        }
 
         Production(String lhs, String rhs) {
             this.lhs = lhs;
+            this.lhsL = null;
+            this.lhsR = null;
             this.rhs = rhs;
         }
 
         public String getLHS() {
             return lhs;
+        }
+
+        public String getLHSL() {
+            return lhsL;
+        }
+
+        public String getLHSR() {
+            return lhsR;
         }
         
         public String getRHS() {
