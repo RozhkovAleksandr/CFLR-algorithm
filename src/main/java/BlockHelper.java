@@ -32,6 +32,10 @@ public class BlockHelper {
     }
 
     public static DMatrixSparseCSC revolutionToTheVertical(DMatrixSparseCSC tmp) {
+        if (!isHorizon(tmp)) {
+            return tmp;
+        }
+
         DMatrixSparseCSC ans = new DMatrixSparseCSC(tmp.numCols, tmp.numRows);
 
         for (int col = 0; col < tmp.getNumCols(); col++) {
