@@ -11,6 +11,7 @@ class BaseMatrix extends AbstractMatrix {
     @Override
     public void multiply(AbstractMatrix other, AsistantMatrix asistant, int n, String production) {
         if (other instanceof LazyMatrix) {
+            asistant.getMatrix(n).matrix.zero();
             ((LazyMatrix) other).multiplyOther(matrix, asistant.getMatrix(n));
         }
         else {

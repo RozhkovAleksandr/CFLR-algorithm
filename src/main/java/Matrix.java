@@ -25,7 +25,7 @@ public class Matrix {
         String filename = "C:\\Users\\Conff\\vscode\\JavaEducation\\CFLR-algorithm\\src\\main\\java\\values\\\\filename.txt";
         List<Edge> edges = readEdgesFromFile(filename, grammar);
 
-        Optimizations optimizations = new Optimizations(true, false, false, true, false);
+        Optimizations optimizations = new Optimizations(true, false, true, false, false);
 
         contextFreePathQuerying(grammar, edges, optimizations);
     }
@@ -38,7 +38,7 @@ public class Matrix {
         // delete tmp3
         AbstractMatrix tmp3;
         // Check optimization !
-        AsistantMatrix help4 = new AsistantMatrix(4, n, block_size);
+        AsistantMatrix help4 = new AsistantMatrix(3, n, block_size);
 
         boolean changed;
         do {
@@ -77,13 +77,13 @@ public class Matrix {
 
                     labels.get(key1).multiply(old.get(key2), help4,1, production);
 
-                    help4.getMatrix(0).add(help4.getMatrix(1).copy(), help4,1);
+                    help4.getMatrix(0).add(help4.getMatrix(1), help4,1);
 
                     old.get(production).subtraction(help4.getMatrix(1), help4.getMatrix(2));
                     
                     tmp2 = help4.getMatrix(1).removeNonPositiveElements();
 
-                    if (optimizations.isOpt3() && tmp2.nz_length() != 0) {
+                    if (optimizations.isOpt3() && tmp2.nz_length() != 0) {             
                         changed = true;
                     }
 
@@ -116,11 +116,9 @@ public class Matrix {
 
         for (HashMap.Entry<String, AbstractMatrix> entry : current.entrySet()) {
             System.out.println("Matrix " + entry.getKey() + ":");
-            if (optimizations.isOpt3() && !optimizations.isOpt4()) {
-                // FIX LATER
-
-                // entry.getValue().toOne(tmp1);
-                // tmp1.print();
+            if (optimizations.isOpt3()) {
+                entry.getValue().toOne(help4.getMatrix(0));
+                help4.getMatrix(0).print();
             } else {
                 entry.getValue().print();
             }
@@ -134,6 +132,21 @@ public class Matrix {
         boolean endsWithI;
         for (String key : grammar.getLetters()) {
             AbstractMatrix matrix;
+
+            // if (optimizations.isOpt5()) {
+            //     endsWithI = key.endsWith("_i");
+            //     if (endsWithI) {
+            //         if (grammar.isLhsR(key)) {
+            //             matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n, n * block_size));
+            //         } else {
+            //             matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n * block_size, n));
+            //         }      
+            //     } else {
+            //         matrix = new CellBlockMatrix(new DMatrixSparseCSC(n, n));
+            //     }
+            // }
+
+
 
             if (optimizations.isOpt4()) {
                 endsWithI = key.endsWith("_i");

@@ -2,7 +2,7 @@
 import org.ejml.data.DMatrixSparseCSC;
 import org.ejml.sparse.csc.CommonOps_DSCC;
 
-public class VectorBlockMatrix extends BlockMatrix {
+public class VectorBlockMatrix extends AbstractMatrix{
 
     public VectorBlockMatrix(DMatrixSparseCSC matrix) {
         super(matrix);

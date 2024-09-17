@@ -1,13 +1,8 @@
-
-
-
-// DELETE UNUSED CLASS
-
 import org.ejml.data.DMatrixSparseCSC;
 
-public class BlockMatrix extends AbstractMatrix {
+public class FastMatrixCell extends AbstractMatrix {
 
-    public BlockMatrix(DMatrixSparseCSC matrix) {
+    public FastMatrixCell(DMatrixSparseCSC matrix) {
         super(matrix);
     }
 
@@ -26,8 +21,6 @@ public class BlockMatrix extends AbstractMatrix {
         throw new UnsupportedOperationException("Unimplemented method 'subtraction'");
     }
 
-    @Override
-    public AbstractMatrix copy() {
-        throw new UnsupportedOperationException("Unimplemented method 'copy'");
-    }
+
+    
 }
