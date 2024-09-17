@@ -8,12 +8,12 @@ import org.ejml.sparse.csc.CommonOps_DSCC;
 class LazyMatrix extends AbstractMatrix {
 
     private final HashSet<DMatrixSparseCSC> matrices = new HashSet<>();
-    private final int b;
+    private final double b;
 
     public LazyMatrix(DMatrixSparseCSC matrix) {
         super(matrix);
         this.matrices.add(matrix);
-        this.b = matrix.numCols * 1;
+        this.b = 1.5;
     }
 
 
@@ -21,41 +21,11 @@ class LazyMatrix extends AbstractMatrix {
     public void multiply(AbstractMatrix other, AsistantMatrix asistant, int n, String production) {
         DMatrixSparseCSC tmp = new DMatrixSparseCSC(other.matrix.numCols, other.matrix.numCols);
 
+        asistant.getMatrix(n).matrix.zero();
+
         for (DMatrixSparseCSC m : matrices) {
             CommonOps_DSCC.mult(m, other.matrix, tmp);
-            piecewiseAdd(tmp, asistant.getMatrix(n).copy().matrix, asistant.getMatrix(n).matrix);
-        }
-    }
-
-    private void piecewiseAdd(DMatrixSparseCSC first, DMatrixSparseCSC second, DMatrixSparseCSC result) {
-        for (int col = 0; col < first.getNumCols(); col++) {
-            int colStart = first.col_idx[col];
-            int colEnd = first.col_idx[col + 1];
-
-            for (int idx = colStart; idx < colEnd; idx++) {
-                int row = first.nz_rows[idx];
-                double value = first.nz_values[idx];
-
-                if (value > 0) {
-                    result.set(row, col, 1);
-                }
-            }
-        }
-
-
-
-        for (int col = 0; col < second.getNumCols(); col++) {
-            int colStart = second.col_idx[col];
-            int colEnd = second.col_idx[col + 1];
-
-            for (int idx = colStart; idx < colEnd; idx++) {
-                int row = second.nz_rows[idx];
-                double value = second.nz_values[idx];
-
-                if (value > 0) {
-                    result.set(row, col, 1);
-                }
-            }
+            CommonOps_DSCC.add(1.0, tmp, 1.0, asistant.getMatrix(n).copy().matrix, asistant.getMatrix(n).matrix, null, null);
         }
     }
 
@@ -64,26 +34,22 @@ class LazyMatrix extends AbstractMatrix {
 
         for (DMatrixSparseCSC m : matrices) {
             CommonOps_DSCC.mult(other, m, tmp);
-            piecewiseAdd(tmp, result.copy().matrix, result.matrix);
+            
+            CommonOps_DSCC.add(1.0, tmp, 1.0, result.copy().matrix, result.matrix, null, null);
         }
     }
 
     @Override
     public void add(AbstractMatrix other, AsistantMatrix asistant, int n) {
-        int border;
-        DMatrixSparseCSC tmp = new DMatrixSparseCSC(other.matrix.numCols, other.matrix.numCols);
-
         boolean f = true;
         while (f) {
-            border = other.nz_length() * b;
             f = false;
             for (DMatrixSparseCSC m : matrices) {
-                if (m.nz_length * b >= other.nz_length() || border >= m.nz_length) { 
-                    // Удали эту хуйню и поставь обычное сложение
-                    piecewiseAdd(m, other.matrix, tmp);
+                if (m.nz_length * b >= other.nz_length() || other.nz_length() * b >= m.nz_length) { 
+                    CommonOps_DSCC.add(1.0, m, 1.0, other.matrix, asistant.getMatrix(n).matrix, null, null);
                     matrices.remove(m);
 
-                    other.matrix = tmp.copy();
+                    other.matrix = asistant.getMatrix(n).matrix.copy();
 
                     f = true;
                     break;
@@ -116,7 +82,7 @@ class LazyMatrix extends AbstractMatrix {
     public void toOne(AbstractMatrix tmp) {
         tmp.matrix.zero();
         for (DMatrixSparseCSC m : matrices) {
-            piecewiseAdd(m, tmp.copy().matrix, tmp.matrix);
+            CommonOps_DSCC.add(1.0, m, 1.0, tmp.copy().matrix, tmp.matrix, null, null);
         }
     }
 
