@@ -25,7 +25,8 @@ public class Matrix {
         String filename = "C:\\Users\\Conff\\vscode\\JavaEducation\\CFLR-algorithm\\src\\main\\java\\values\\\\filename.txt";
         List<Edge> edges = readEdgesFromFile(filename, grammar);
 
-        Optimizations optimizations = new Optimizations(true, false, true, false, false);
+        // Opt5 - all optimization
+        Optimizations optimizations = new Optimizations(true, false, false, false, true);
 
         contextFreePathQuerying(grammar, edges, optimizations);
     }
@@ -38,7 +39,8 @@ public class Matrix {
         // delete tmp3
         AbstractMatrix tmp3;
         // Check optimization !
-        AsistantMatrix help4 = new AsistantMatrix(3, n, block_size);
+        AsistantMatrix help4 = new AsistantMatrix(5, n, block_size);
+        int schit = 0;
 
         boolean changed;
         do {
@@ -55,7 +57,7 @@ public class Matrix {
                 if (optimizations.isOpt1()) {
                     old.get(key1).multiply(labels.get(key2), help4, 0, production);
 
-                    if (!optimizations.isOpt3()) {
+                    if (!optimizations.isOpt3() && !optimizations.isOpt5()) {
                         for (String key : labels.keySet()) {
                             tmp3 = old.get(key).copy();
 
@@ -70,8 +72,6 @@ public class Matrix {
                     } else {
                         for (String key : labels.keySet()) {
                             old.get(key).add(labels.get(key), help4, 2);
-
-                            old.get(key).toOne(help4.getMatrix(2));
                         }
                     }
 
@@ -79,15 +79,15 @@ public class Matrix {
 
                     help4.getMatrix(0).add(help4.getMatrix(1), help4,1);
 
-                    old.get(production).subtraction(help4.getMatrix(1), help4.getMatrix(2));
+                    old.get(production).subtraction(help4.getMatrix(1), help4, 2);
                     
                     tmp2 = help4.getMatrix(1).removeNonPositiveElements();
 
-                    if (optimizations.isOpt3() && tmp2.nz_length() != 0) {             
+                    if ((optimizations.isOpt3() && tmp2.nz_length() != 0) || (optimizations.isOpt5() && tmp2.nz_length() != 0)) {  
                         changed = true;
                     }
 
-                    labels.put((production), tmp2.copy());
+                    labels.put(production, tmp2.copy());
 
                 } else {
                     AbstractMatrix keyMatrix = labels.get(production);
@@ -101,9 +101,8 @@ public class Matrix {
                         labels.put(production, help4.getMatrix(1).copy());
                     }
                 }
-
             }
-        } while (changed);
+        } while (changed && schit != 50);
 
         HashMap<String, AbstractMatrix> current;
 
@@ -116,8 +115,8 @@ public class Matrix {
 
         for (HashMap.Entry<String, AbstractMatrix> entry : current.entrySet()) {
             System.out.println("Matrix " + entry.getKey() + ":");
-            if (optimizations.isOpt3()) {
-                entry.getValue().toOne(help4.getMatrix(0));
+            if (optimizations.isOpt3() || optimizations.isOpt5()) {
+                entry.getValue().toOne(help4, 0);
                 help4.getMatrix(0).print();
             } else {
                 entry.getValue().print();
@@ -133,44 +132,57 @@ public class Matrix {
         for (String key : grammar.getLetters()) {
             AbstractMatrix matrix;
 
-            // if (optimizations.isOpt5()) {
-            //     endsWithI = key.endsWith("_i");
-            //     if (endsWithI) {
-            //         if (grammar.isLhsR(key)) {
-            //             matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n, n * block_size));
-            //         } else {
-            //             matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n * block_size, n));
-            //         }      
-            //     } else {
-            //         matrix = new CellBlockMatrix(new DMatrixSparseCSC(n, n));
-            //     }
-            // }
-
-
-
-            if (optimizations.isOpt4()) {
+            if (optimizations.isOpt5()) {
                 endsWithI = key.endsWith("_i");
                 if (endsWithI) {
                     if (grammar.isLhsR(key)) {
-                        matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n, n * block_size));
+                        if (!edges.equals(Arrays.asList())) {
+                            matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n, n * block_size));
+                        }
+                        else {
+                            matrix = new FastMatrixVector(new DMatrixSparseCSC(n, n * block_size));
+                        }
                     } else {
-                        matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n * block_size, n));
+                            if (!edges.equals(Arrays.asList())) {
+                                matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n * block_size, n));
+                            }
+                            else {
+                                matrix = new FastMatrixVector(new DMatrixSparseCSC(n * block_size, n));
+                            }
                     }      
                 } else {
-                    matrix = new CellBlockMatrix(new DMatrixSparseCSC(n, n));
-                }
-            } else {
-                if (optimizations.isOpt3()) {
                     if (!edges.equals(Arrays.asList())) {
-                        matrix = new BaseMatrix(new DMatrixSparseCSC(n, n));
+                        matrix = new CellBlockMatrix(new DMatrixSparseCSC(n, n));
                     } else {
-                        matrix = new LazyMatrix(new DMatrixSparseCSC(n, n));
+                        matrix = new FastMatrixCell(new DMatrixSparseCSC(n, n));
+                    }
+                }
+            }
+            else {
+                if (optimizations.isOpt4()) {
+                    endsWithI = key.endsWith("_i");
+                    if (endsWithI) {
+                        if (grammar.isLhsR(key)) {
+                            matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n, n * block_size));
+                        } else {
+                            matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n * block_size, n));
+                        }      
+                    } else {
+                        matrix = new CellBlockMatrix(new DMatrixSparseCSC(n, n));
                     }
                 } else {
-                    if (optimizations.isOpt2()) {
-                        matrix = new FormatMatrix(new DMatrixSparseCSC(n, n));
+                    if (optimizations.isOpt3()) {
+                        if (!edges.equals(Arrays.asList())) {
+                            matrix = new BaseMatrix(new DMatrixSparseCSC(n, n));
+                        } else {
+                            matrix = new LazyMatrix(new DMatrixSparseCSC(n, n));
+                        }
                     } else {
-                        matrix = new BaseMatrix(new DMatrixSparseCSC(n, n));
+                        if (optimizations.isOpt2()) {
+                            matrix = new FormatMatrix(new DMatrixSparseCSC(n, n));
+                        } else {
+                            matrix = new BaseMatrix(new DMatrixSparseCSC(n, n));
+                        }
                     }
                 }
             }
@@ -210,8 +222,6 @@ public class Matrix {
                 }
             }
         }
-
-        // labels.get("a").print();
         
         return labels;
     }

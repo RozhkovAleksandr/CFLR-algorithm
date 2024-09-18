@@ -22,7 +22,7 @@ public class BlockMatrix extends AbstractMatrix {
     }
 
     @Override
-    public void subtraction(AbstractMatrix other, AbstractMatrix tmp) {
+    public void subtraction(AbstractMatrix other, AsistantMatrix asistant, int n) {
         throw new UnsupportedOperationException("Unimplemented method 'subtraction'");
     }
 

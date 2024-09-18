@@ -10,14 +10,23 @@ public class CellBlockMatrix extends AbstractMatrix {
 
     @Override
     public void multiply(AbstractMatrix other, AsistantMatrix asistant, int n, String production) {
-        if (isCell(other)) {
-            CommonOps_DSCC.mult(matrix, other.matrix, asistant.getMatrix("cell", n).matrix);
-        }
-        else {
-            CommonOps_DSCC.mult(matrix, BlockHelper.revolutionToTheHorizon(other.matrix), asistant.getMatrix("horizon", n).matrix);
-            if (!production.endsWith("_i")) {
-                asistant.putMatrix("horizon", n, BlockHelper.reverseVectorBlockMatrix(asistant.getMatrix(n)));
-            }
+        switch (other.getClass().getSimpleName()) {
+            case "FastMatrixVector":
+                ((FastMatrixVector) other).multiplyOther(matrix, asistant, n, production);
+                break;
+            case "FastMatrixCell":
+                ((FastMatrixCell) other).multiplyOther(matrix, asistant, n, production);
+                break;
+            default:
+                if (isCell(other)) {
+                    CommonOps_DSCC.mult(matrix, other.matrix, asistant.getMatrix("cell", n).matrix);
+                } else {
+                    CommonOps_DSCC.mult(matrix, BlockHelper.revolutionToTheHorizon(other.matrix), asistant.getMatrix("horizon", n).matrix);
+                    if (!production.endsWith("_i")) {
+                        asistant.putMatrix(n, BlockHelper.reverseVectorBlockMatrix(asistant.getMatrix(n)));
+                    }
+                }
+                break;
         }
     }
 
@@ -32,13 +41,13 @@ public class CellBlockMatrix extends AbstractMatrix {
     }
 
     @Override
-    public void subtraction(AbstractMatrix other, AbstractMatrix tmp) {
+    public void subtraction(AbstractMatrix other, AsistantMatrix asistant, int n) {
         if (!isCell(other)) {
             throw new IllegalArgumentException("The 'other' matrix is not a cell.");
         }
 
-        CommonOps_DSCC.changeSign(this.matrix, tmp.matrix);
-        CommonOps_DSCC.add(1.0, other.copy().matrix, 1.0, tmp.matrix, other.matrix, null, null);
+        CommonOps_DSCC.changeSign(this.matrix, asistant.getMatrix(n).matrix);
+        CommonOps_DSCC.add(1.0, other.copy().matrix, 1.0, asistant.getMatrix(n).matrix, other.matrix, null, null);
     }
 
     @Override

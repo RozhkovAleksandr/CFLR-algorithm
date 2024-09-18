@@ -60,7 +60,7 @@ class LazyMatrix extends AbstractMatrix {
     }
 
     @Override
-    public void subtraction(AbstractMatrix other, AbstractMatrix tmp) {
+    public void subtraction(AbstractMatrix other, AsistantMatrix asistant, int n) {
         for (DMatrixSparseCSC m : matrices) {
 
             for (int col = 0; col < m.getNumCols(); col++) {
@@ -79,10 +79,10 @@ class LazyMatrix extends AbstractMatrix {
     }
 
     @Override
-    public void toOne(AbstractMatrix tmp) {
-        tmp.matrix.zero();
+    public void toOne(AsistantMatrix asistant, int n) {
+        asistant.getMatrix(n).matrix.zero();
         for (DMatrixSparseCSC m : matrices) {
-            CommonOps_DSCC.add(1.0, m, 1.0, tmp.copy().matrix, tmp.matrix, null, null);
+            CommonOps_DSCC.add(1.0, m, 1.0, asistant.getMatrix(n).copy().matrix, asistant.getMatrix(n).matrix, null, null);
         }
     }
 

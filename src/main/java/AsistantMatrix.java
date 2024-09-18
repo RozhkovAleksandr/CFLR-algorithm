@@ -23,6 +23,7 @@ public class AsistantMatrix {
         orderNow = new ArrayList<>();
         switch (optim) {
             case 4:
+            case 5:
                 tmp1 = new CellBlockMatrix(new DMatrixSparseCSC(n, n));
                 tmp2 = new CellBlockMatrix(new DMatrixSparseCSC(n, n));
                 tmp3 = new CellBlockMatrix(new DMatrixSparseCSC(n, n));
@@ -70,11 +71,9 @@ public class AsistantMatrix {
         return orderNow.get(index);
     }
 
-    public void putMatrix(String direction, int index, CellBlockMatrix m) {
-        // orderNow.set(index, m);
+    public void putMatrix(int index, CellBlockMatrix m) {
         order.set(index, m);
         orderNow.set(index, order.get(index));
-        
     }
 
     public AbstractMatrix getMatrix(String direction, int index) {

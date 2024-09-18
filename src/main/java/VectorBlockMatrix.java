@@ -10,14 +10,23 @@ public class VectorBlockMatrix extends AbstractMatrix{
 
     @Override
     public void multiply(AbstractMatrix other, AsistantMatrix asistant, int n, String production) {
-        if (!isVector(other)) {
-            CommonOps_DSCC.mult(BlockHelper.revolutionToTheVertical(matrix), other.matrix, asistant.getMatrix("vertical", n).matrix);
-        } else {
-            CommonOps_DSCC.mult(BlockHelper.toDiagMatrix(matrix), BlockHelper.revolutionToTheVertical(other.matrix), asistant.getMatrix("vertical", n).matrix);
-        }
+        switch (other.getClass().getSimpleName()) {
+            case "FastMatrixVector":
+                ((FastMatrixVector) other).multiplyOther(matrix, asistant, n, production);
+                break;
+            case "FastMatrixCell":
+                ((FastMatrixCell) other).multiplyOther(matrix, asistant, n, production);
+                break;
+            default:
+                if (!isVector(other)) {
+                    CommonOps_DSCC.mult(BlockHelper.revolutionToTheVertical(matrix), other.matrix, asistant.getMatrix("vertical", n).matrix);
+                } else {
+                    CommonOps_DSCC.mult(BlockHelper.toDiagMatrix(matrix), BlockHelper.revolutionToTheVertical(other.matrix), asistant.getMatrix("vertical", n).matrix);
+                }
 
-        if (!production.endsWith("_i")) {
-            asistant.putMatrix("vertical", n, BlockHelper.reverseVectorBlockMatrix(asistant.getMatrix(n)));
+                if (!production.endsWith("_i")) {
+                    asistant.putMatrix(n, BlockHelper.reverseVectorBlockMatrix(asistant.getMatrix(n)));
+                }
         }
     }
 
@@ -43,25 +52,25 @@ public class VectorBlockMatrix extends AbstractMatrix{
     }
 
     @Override
-    public void subtraction(AbstractMatrix other, AbstractMatrix tmp) {
+    public void subtraction(AbstractMatrix other, AsistantMatrix asistant, int n) {
         if (!isVector(other)) {
             throw new IllegalArgumentException("The matrix is not blocky.");
         }
 
         // change tmp -> matrix in add
         if (other.matrix.numCols == matrix.numCols) {
-            CommonOps_DSCC.changeSign(matrix, tmp.matrix);
-            CommonOps_DSCC.add(1, other.matrix.copy(), 1, tmp.matrix, other.matrix, null, null);
+            CommonOps_DSCC.changeSign(matrix, asistant.getMatrix(n).matrix);
+            CommonOps_DSCC.add(1, other.matrix.copy(), 1, asistant.getMatrix(n).matrix, other.matrix, null, null);
         } else {
 
 
             // change tmp -> matrix in add
             if (other.matrix.numCols >= matrix.numCols) {
-                CommonOps_DSCC.changeSign(BlockHelper.revolutionToTheHorizon(matrix), tmp.matrix);
-                CommonOps_DSCC.add(1, other.matrix.copy(), 1, tmp.matrix, other.matrix, null, null);
+                CommonOps_DSCC.changeSign(BlockHelper.revolutionToTheHorizon(matrix), asistant.getMatrix(n).matrix);
+                CommonOps_DSCC.add(1, other.matrix.copy(), 1, asistant.getMatrix(n).matrix, other.matrix, null, null);
             } else {
-                CommonOps_DSCC.changeSign(BlockHelper.revolutionToTheVertical(matrix), tmp.matrix);
-                CommonOps_DSCC.add(1, other.matrix.copy(), 1, tmp.matrix, other.matrix, null, null);
+                CommonOps_DSCC.changeSign(BlockHelper.revolutionToTheVertical(matrix), asistant.getMatrix(n).matrix);
+                CommonOps_DSCC.add(1, other.matrix.copy(), 1, asistant.getMatrix(n).matrix, other.matrix, null, null);
             }
         }
     }

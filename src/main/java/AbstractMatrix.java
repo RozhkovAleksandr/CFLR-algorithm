@@ -65,9 +65,9 @@ abstract public class AbstractMatrix {
         return matrix.nz_values[col];
     }
 
-    public abstract void subtraction(AbstractMatrix other, AbstractMatrix tmp) ;
+    public abstract void subtraction(AbstractMatrix other, AsistantMatrix asistant, int n) ;
     
-    void toOne(AbstractMatrix tmp1) {
+    public void toOne(AsistantMatrix asistant, int n) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 }

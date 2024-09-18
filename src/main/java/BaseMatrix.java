@@ -32,9 +32,9 @@ class BaseMatrix extends AbstractMatrix {
     }
 
     @Override
-    public void subtraction(AbstractMatrix other, AbstractMatrix tmp) {
-        CommonOps_DSCC.changeSign(this.matrix, tmp.matrix);
-        CommonOps_DSCC.add(1.0, other.copy().matrix, 1.0, tmp.matrix, other.matrix, null, null);
+    public void subtraction(AbstractMatrix other, AsistantMatrix asistant, int n) {
+        CommonOps_DSCC.changeSign(this.matrix, asistant.getMatrix(n).matrix);
+        CommonOps_DSCC.add(1.0, other.copy().matrix, 1.0, asistant.getMatrix(n).matrix, other.matrix, null, null);
     }
 
     @Override
