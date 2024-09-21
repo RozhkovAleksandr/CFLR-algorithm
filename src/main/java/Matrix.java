@@ -16,37 +16,42 @@ public class Matrix {
     static int block_size = 0;
     static int n = 0;
 
-    // обязательное условие. вводить вершины начиная с 0 и не пропускать значения
+    // enter vertices starting from 0 and do not skip values
     public static void main(String[] args) {
+        if (args.length != 4) {
+            System.err.println("Invalid argument format. You need to specify two files: file path, file grammar, optimizations number.");
+            System.exit(1);
+        }
+
+        String filePath = args[1];
+        String fileGrammar = args[0];
+        String optimNumber = args[2];
+        String ultimate = args[2];
+
         Grammar grammar = new Grammar();
-        String filePath = "C:\\Users\\Conff\\vscode\\JavaEducation\\CFLR-algorithm\\src\\main\\java\\values\\grammarFile.txt";
-        parseGrammarFile(filePath, grammar);
+        parseGrammarFile(fileGrammar, grammar);
 
-        String filename = "C:\\Users\\Conff\\vscode\\JavaEducation\\CFLR-algorithm\\src\\main\\java\\values\\\\filename.txt";
-        List<Edge> edges = readEdgesFromFile(filename, grammar);
+        List<Edge> edges = readEdgesFromFile(filePath, grammar);
 
-        // Opt5 - all optimization
-        Optimizations optimizations = new Optimizations(true, false, false, false, true);
+        Optimizations optimizations = new Optimizations(optimNumber);
 
-        contextFreePathQuerying(grammar, edges, optimizations);
+        contextFreePathQuerying(grammar, edges, optimizations, ultimate);
     }
 
-    public static HashMap<String, AbstractMatrix> contextFreePathQuerying(Grammar grammar, List<Edge> edges, Optimizations optimizations) {
+    public static AbstractMatrix contextFreePathQuerying(Grammar grammar, List<Edge> edges, Optimizations optimizations, String ultimate) {
         HashMap<String, AbstractMatrix> labels = makeMatrix(grammar, edges, optimizations);
         HashMap<String, AbstractMatrix> old = makeMatrix(grammar, Arrays.asList(), optimizations);
 
-        AbstractMatrix tmp2;
-        // delete tmp3
-        AbstractMatrix tmp3;
-        // Check optimization !
-        AsistantMatrix help4 = new AsistantMatrix(5, n, block_size);
-        int schit = 0;
+        AbstractMatrix tmp;
+        AsistantMatrix storage = new AsistantMatrix(optimizations.number, n, block_size);
 
         boolean changed;
         do {
             changed = false;
             for (Grammar.Production a : grammar.getProductions()) {
+                // checking for a single rule
                 if (a.getLHSL() == null) {
+                    checkingEpsilonCases(a, labels, optimizations, storage);
                     continue;
                 }
 
@@ -55,75 +60,64 @@ public class Matrix {
                 String production = a.getRHS();
 
                 if (optimizations.isOpt1()) {
-                    old.get(key1).multiply(labels.get(key2), help4, 0, production);
+                    old.get(key1).multiply(labels.get(key2), storage, 0, production);
 
                     if (!optimizations.isOpt3() && !optimizations.isOpt5()) {
                         for (String key : labels.keySet()) {
-                            tmp3 = old.get(key).copy();
 
-                            labels.get(key).add(old.get(key), help4, 1);
+                            labels.get(key).add(old.get(key), storage, 1);
 
-                            old.put(key, help4.getMatrix(1).copy());
-
-                            if (tmp3.nz_length() != old.get(key).nz_length()) {
+                            if (storage.getMatrix(1).nz_length() != old.get(key).nz_length()) {
                                 changed = true;
                             }
+
+                            old.put(key, storage.getMatrix(1).copy());
                         }
                     } else {
                         for (String key : labels.keySet()) {
-                            old.get(key).add(labels.get(key), help4, 2);
+                            old.get(key).add(labels.get(key), storage, 2);
                         }
                     }
 
-                    labels.get(key1).multiply(old.get(key2), help4,1, production);
+                    labels.get(key1).multiply(old.get(key2), storage,1, production);
 
-                    help4.getMatrix(0).add(help4.getMatrix(1), help4,1);
+                    storage.getMatrix(0).add(storage.getMatrix(1), storage,1);
 
-                    old.get(production).subtraction(help4.getMatrix(1), help4, 2);
+                    old.get(production).subtraction(storage.getMatrix(1), storage, 2);
                     
-                    tmp2 = help4.getMatrix(1).removeNonPositiveElements();
+                    tmp = storage.getMatrix(1).removeNonPositiveElements();
 
-                    if ((optimizations.isOpt3() && tmp2.nz_length() != 0) || (optimizations.isOpt5() && tmp2.nz_length() != 0)) {  
+                    if ((optimizations.isOpt3() && tmp.nz_length() != 0) || (optimizations.isOpt5() && tmp.nz_length() != 0)) {  
                         changed = true;
                     }
 
-                    labels.put(production, tmp2.copy());
+                    labels.put(production, tmp.copy());
 
                 } else {
                     AbstractMatrix keyMatrix = labels.get(production);
 
-                    labels.get(key1).multiply(labels.get(key2), help4, 1, production);
+                    labels.get(key1).multiply(labels.get(key2), storage, 1, production);
 
-                    help4.getMatrix(1).copy().add(keyMatrix, help4, 1);
+                    storage.getMatrix(1).copy().add(keyMatrix, storage, 1);
 
-                    if (keyMatrix.nz_length() != help4.getMatrix(1).nz_length()) {
+                    if (keyMatrix.nz_length() != storage.getMatrix(1).nz_length()) {
                         changed = true;
-                        labels.put(production, help4.getMatrix(1).copy());
+                        labels.put(production, storage.getMatrix(1).copy());
                     }
                 }
             }
-        } while (changed && schit != 50);
+        } while (changed);
 
-        HashMap<String, AbstractMatrix> current;
+        if (optimizations.isOpt3() || optimizations.isOpt5()) {
+            old.get(ultimate).toOne(storage, 1);
+            return storage.getMatrix(1);
+        } 
 
-        if (optimizations.isOpt1()) {
-            current = old;
-        } else {
-            current = labels;
+        if (optimizations.isOpt2() || optimizations.isOpt4()) {
+            return old.get(ultimate);
         }
 
-
-        for (HashMap.Entry<String, AbstractMatrix> entry : current.entrySet()) {
-            System.out.println("Matrix " + entry.getKey() + ":");
-            if (optimizations.isOpt3() || optimizations.isOpt5()) {
-                entry.getValue().toOne(help4, 0);
-                help4.getMatrix(0).print();
-            } else {
-                entry.getValue().print();
-            }
-        }
-
-        return current;
+        return labels.get(ultimate);
     }
 
     private static HashMap<String, AbstractMatrix> makeMatrix(Grammar grammar, List<Edge> edges, Optimizations optimizations) {
@@ -272,6 +266,24 @@ public class Matrix {
             }
         } catch (IOException e) {
             System.err.println("Error reading the file: " + e.getMessage());
+        }
+
+        grammar.addNewRules();
+    }
+
+    public static void checkingEpsilonCases(Grammar.Production a, HashMap<String, AbstractMatrix> labels, Optimizations opt, AsistantMatrix storage) {
+
+        if (a.getLHS() != null) {
+            for (int col = 0; col < labels.get(a.getLHS()).getNumCols(); col++) {
+                int colStart = labels.get(a.getLHS()).col_idx(col);
+                int colEnd = labels.get(a.getLHS()).col_idx(col + 1);
+
+                for (int idx = colStart; idx < colEnd; idx++) {
+                    int row = labels.get(a.getLHS()).nz_rows(idx);
+                    
+                    labels.get(a.getRHS()).set(row, col, 1);
+                }
+            }
         }
     }
 }

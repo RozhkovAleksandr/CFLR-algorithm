@@ -1,5 +1,6 @@
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 public class Grammar {
@@ -7,12 +8,14 @@ public class Grammar {
     private final Set<Production> productionRules;
     private Set<String> lhsL;
     private Set<String> lhsR;
+    private Set<String> epsilonValues;
         
     public Grammar() {
         this.letters = new HashSet<>();
         this.productionRules = new HashSet<>();
         this.lhsL = new HashSet<>();
         this.lhsR = new HashSet<>();
+        this.epsilonValues = new HashSet<>();
     }
 
     public void addProductionRules(String rules) {
@@ -25,11 +28,37 @@ public class Grammar {
             addLetters(parts[0]);
             addLetters(parts[1]);
             addLetters(parts[2]);
-        } else {
-            lhsL.add(parts[1]);
-            productionRules.add(new Production(parts[1], parts[0]));
-            addLetters(parts[0]);
-            addLetters(parts[1]);
+        } else { 
+            if (parts.length == 2) {
+                lhsL.add(parts[1]);
+                productionRules.add(new Production(parts[1], parts[0]));
+                addLetters(parts[0]);
+                addLetters(parts[1]);
+            } else {
+                productionRules.add(new Production(parts[0]));
+                addLetters(parts[0]);
+                epsilonValues.add(parts[0]);
+            }
+        }
+    }
+
+    public void addNewRules() {
+        boolean f = true;
+        while (f) {
+            f = false;
+            for (Production production : new HashSet<>(productionRules)) {
+                if ((!epsilonValues.contains(production.getRHS()) && epsilonValues.contains(production.getLHS())) || (!epsilonValues.contains(production.getRHS()) && epsilonValues.contains(production.getLHSR()) && epsilonValues.contains(production.getLHSL()))) {
+                    f = true;
+                    epsilonValues.add(production.getRHS());
+                    break;
+                }
+                if ((!epsilonValues.contains(production.getRHS()) || (production.getRHS().equals(production.getLHSL()))) && epsilonValues.contains(production.getLHSL())) {
+                    productionRules.add(new Production(production.getLHSR(), production.getRHS()));
+                }
+                if ((!epsilonValues.contains(production.getRHS()) || (production.getRHS().equals(production.getLHSR()))) && epsilonValues.contains(production.getLHSR())) {
+                    productionRules.add(new Production(production.getLHSL(), production.getRHS()));
+                }
+            }
         }
     }
 
@@ -47,7 +76,7 @@ public class Grammar {
 
     public String getRHSByLHS(String lhs) {
         for (Production production : productionRules) {
-            if (production.getLHS().equals(lhs)) {
+            if (Objects.equals(production.getLHS(), lhs)) {
                 return production.getRHS();
             }
         }
@@ -57,8 +86,6 @@ public class Grammar {
     public boolean isLhsR(String lhsR) {
         return lhsR.contains(lhsR);
     }
-
-    // реализуй метод возвращение продукций. Для поиска продукций
 
     public class Production {
         String lhs;
@@ -75,6 +102,13 @@ public class Grammar {
 
         Production(String lhs, String rhs) {
             this.lhs = lhs;
+            this.lhsL = null;
+            this.lhsR = null;
+            this.rhs = rhs;
+        }
+
+        Production(String rhs) {
+            this.lhs = null;
             this.lhsL = null;
             this.lhsR = null;
             this.rhs = rhs;
