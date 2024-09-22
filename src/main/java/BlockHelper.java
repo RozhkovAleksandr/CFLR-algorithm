@@ -1,5 +1,4 @@
 
-
 import org.ejml.data.DMatrixSparseCSC;
 
 public class BlockHelper {
@@ -20,7 +19,7 @@ public class BlockHelper {
                 double value = tmp.nz_values[idx];
 
                 if (value > 0) {
-                    ans.set(row  % tmp.numCols, col + (tmp.numRows / (tmp.numRows / tmp.numCols)) * (row / tmp.numCols), 1);
+                    ans.set(row % tmp.numCols, col + (tmp.numRows / (tmp.numRows / tmp.numCols)) * (row / tmp.numCols), 1);
                 }
             }
         }
@@ -48,7 +47,7 @@ public class BlockHelper {
                 double value = tmp.nz_values[idx];
 
                 if (value > 0) {
-                    ans.set(row + (tmp.numCols / (tmp.numCols / tmp.numRows)) * (col / tmp.numRows), col  % tmp.numRows, 1);
+                    ans.set(row + (tmp.numCols / (tmp.numCols / tmp.numRows)) * (col / tmp.numRows), col % tmp.numRows, 1);
                 }
             }
         }
@@ -94,8 +93,6 @@ public class BlockHelper {
 
         return ans;
     }
-
-
 
     public static DMatrixSparseCSC reverse(DMatrixSparseCSC tmp) {
         DMatrixSparseCSC ans;
@@ -143,8 +140,6 @@ public class BlockHelper {
     public static CellBlockMatrix reverseVectorBlockMatrix(AbstractMatrix tmp) {
         CellBlockMatrix ans;
 
-        // tmp.print();
-
         if (tmp.matrix.numCols > tmp.matrix.numRows) {
             int minimum = tmp.matrix.numRows;
             ans = new CellBlockMatrix(new DMatrixSparseCSC(minimum, minimum));
@@ -181,8 +176,6 @@ public class BlockHelper {
             }
 
         }
-        // ans.print();
-        // System.out.println("__________++++++___________");
         return ans;
 
     }

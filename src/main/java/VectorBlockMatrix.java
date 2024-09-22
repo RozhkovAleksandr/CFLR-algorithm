@@ -2,7 +2,7 @@
 import org.ejml.data.DMatrixSparseCSC;
 import org.ejml.sparse.csc.CommonOps_DSCC;
 
-public class VectorBlockMatrix extends AbstractMatrix{
+public class VectorBlockMatrix extends AbstractMatrix {
 
     public VectorBlockMatrix(DMatrixSparseCSC matrix) {
         super(matrix);
@@ -41,7 +41,7 @@ public class VectorBlockMatrix extends AbstractMatrix{
         } else {
             if (matrix.numCols == other.matrix.numCols && matrix.numCols > matrix.numRows) {
                 CommonOps_DSCC.add(1, matrix, 1, other.matrix, asistant.getMatrix("horizon", n).matrix, null, null);
-            } else { 
+            } else {
                 if (matrix.numCols >= other.matrix.numCols) {
                     CommonOps_DSCC.add(1, matrix, 1, BlockHelper.revolutionToTheHorizon(other.matrix), asistant.getMatrix("horizon", n).matrix, null, null);
                 } else {
@@ -57,14 +57,11 @@ public class VectorBlockMatrix extends AbstractMatrix{
             throw new IllegalArgumentException("The matrix is not blocky.");
         }
 
-        // change tmp -> matrix in add
         if (other.matrix.numCols == matrix.numCols) {
             CommonOps_DSCC.changeSign(matrix, asistant.getMatrix(n).matrix);
             CommonOps_DSCC.add(1, other.matrix.copy(), 1, asistant.getMatrix(n).matrix, other.matrix, null, null);
         } else {
 
-
-            // change tmp -> matrix in add
             if (other.matrix.numCols >= matrix.numCols) {
                 CommonOps_DSCC.changeSign(BlockHelper.revolutionToTheHorizon(matrix), asistant.getMatrix(n).matrix);
                 CommonOps_DSCC.add(1, other.matrix.copy(), 1, asistant.getMatrix(n).matrix, other.matrix, null, null);
@@ -91,7 +88,6 @@ public class VectorBlockMatrix extends AbstractMatrix{
     public AbstractMatrix removeNonPositiveElements() {
         AbstractMatrix positiveMatrix = new VectorBlockMatrix(new DMatrixSparseCSC(matrix.numRows, matrix.numCols));
         DMatrixSparseCSC tmp = this.matrix.copy();
-
 
         for (int col = 0; col < tmp.getNumCols(); col++) {
             int colStart = tmp.col_idx[col];

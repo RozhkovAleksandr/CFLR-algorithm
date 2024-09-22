@@ -15,7 +15,7 @@ This repository implements a CFLR (Context-Free Language Recognition) algorithm.
 Arguments:
 
 * <grammar_file>: The path to the file containing the context-free grammar.
-* <graph_file>: The path to a file containing a set of adjacent vertices and their symbol.
+* <graph_file>: The path to a file containing a set of adjacent vertices and their symbol. (Vertices must start from zero and go sequentially)
 
 * <optimization_level>: Integer value representing the optimization level to be applied. Possible values:
 

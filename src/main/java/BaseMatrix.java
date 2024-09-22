@@ -1,6 +1,6 @@
+
 import org.ejml.data.DMatrixSparseCSC;
 import org.ejml.sparse.csc.CommonOps_DSCC;
-
 
 class BaseMatrix extends AbstractMatrix {
 
@@ -11,10 +11,11 @@ class BaseMatrix extends AbstractMatrix {
     @Override
     public void multiply(AbstractMatrix other, AsistantMatrix asistant, int n, String production) {
         if (other instanceof LazyMatrix) {
-            asistant.getMatrix(n).matrix.zero();
-            ((LazyMatrix) other).multiplyOther(matrix, asistant.getMatrix(n));
-        }
-        else {
+            if (asistant != null && asistant.getMatrix(n) != null) {
+                asistant.getMatrix(n).matrix.zero();
+                ((LazyMatrix) other).multiplyOther(matrix, asistant.getMatrix(n));
+            }
+        } else if (other != null && other.matrix != null) {
             CommonOps_DSCC.mult(this.matrix, other.matrix, asistant.getMatrix(n).matrix);
         }
     }
@@ -41,7 +42,6 @@ class BaseMatrix extends AbstractMatrix {
     public AbstractMatrix removeNonPositiveElements() {
         AbstractMatrix positiveMatrix = new BaseMatrix(new DMatrixSparseCSC(matrix.getNumCols(), matrix.getNumCols()));
         DMatrixSparseCSC tmp = this.matrix.copy();
-
 
         for (int col = 0; col < tmp.getNumCols(); col++) {
             int colStart = tmp.col_idx[col];

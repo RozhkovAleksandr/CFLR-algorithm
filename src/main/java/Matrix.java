@@ -13,7 +13,7 @@ import org.ejml.data.DMatrixSparseCSC;
 
 public class Matrix {
 
-    static int block_size = 0;
+    static int block_size = 1;
     static int n = 0;
 
     // enter vertices starting from 0 and do not skip values
@@ -26,7 +26,7 @@ public class Matrix {
         String filePath = args[1];
         String fileGrammar = args[0];
         String optimNumber = args[2];
-        String ultimate = args[2];
+        String ultimate = args[3];
 
         Grammar grammar = new Grammar();
         parseGrammarFile(fileGrammar, grammar);
@@ -49,7 +49,6 @@ public class Matrix {
         do {
             changed = false;
             for (Grammar.Production a : grammar.getProductions()) {
-                // checking for a single rule
                 if (a.getLHSL() == null) {
                     checkingEpsilonCases(a, labels, optimizations, storage);
                     continue;
@@ -79,15 +78,15 @@ public class Matrix {
                         }
                     }
 
-                    labels.get(key1).multiply(old.get(key2), storage,1, production);
+                    labels.get(key1).multiply(old.get(key2), storage, 1, production);
 
-                    storage.getMatrix(0).add(storage.getMatrix(1), storage,1);
+                    storage.getMatrix(0).add(storage.getMatrix(1), storage, 1);
 
                     old.get(production).subtraction(storage.getMatrix(1), storage, 2);
-                    
+
                     tmp = storage.getMatrix(1).removeNonPositiveElements();
 
-                    if ((optimizations.isOpt3() && tmp.nz_length() != 0) || (optimizations.isOpt5() && tmp.nz_length() != 0)) {  
+                    if ((optimizations.isOpt3() && tmp.nz_length() != 0) || (optimizations.isOpt5() && tmp.nz_length() != 0)) {
                         changed = true;
                     }
 
@@ -111,7 +110,7 @@ public class Matrix {
         if (optimizations.isOpt3() || optimizations.isOpt5()) {
             old.get(ultimate).toOne(storage, 1);
             return storage.getMatrix(1);
-        } 
+        }
 
         if (optimizations.isOpt2() || optimizations.isOpt4()) {
             return old.get(ultimate);
@@ -132,18 +131,16 @@ public class Matrix {
                     if (grammar.isLhsR(key)) {
                         if (!edges.equals(Arrays.asList())) {
                             matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n, n * block_size));
-                        }
-                        else {
+                        } else {
                             matrix = new FastMatrixVector(new DMatrixSparseCSC(n, n * block_size));
                         }
                     } else {
-                            if (!edges.equals(Arrays.asList())) {
-                                matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n * block_size, n));
-                            }
-                            else {
-                                matrix = new FastMatrixVector(new DMatrixSparseCSC(n * block_size, n));
-                            }
-                    }      
+                        if (!edges.equals(Arrays.asList())) {
+                            matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n * block_size, n));
+                        } else {
+                            matrix = new FastMatrixVector(new DMatrixSparseCSC(n * block_size, n));
+                        }
+                    }
                 } else {
                     if (!edges.equals(Arrays.asList())) {
                         matrix = new CellBlockMatrix(new DMatrixSparseCSC(n, n));
@@ -151,8 +148,7 @@ public class Matrix {
                         matrix = new FastMatrixCell(new DMatrixSparseCSC(n, n));
                     }
                 }
-            }
-            else {
+            } else {
                 if (optimizations.isOpt4()) {
                     endsWithI = key.endsWith("_i");
                     if (endsWithI) {
@@ -160,7 +156,7 @@ public class Matrix {
                             matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n, n * block_size));
                         } else {
                             matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n * block_size, n));
-                        }      
+                        }
                     } else {
                         matrix = new CellBlockMatrix(new DMatrixSparseCSC(n, n));
                     }
@@ -192,35 +188,35 @@ public class Matrix {
             if (from <= n && to <= n) {
                 if (edge.hasN()) {
                     if (grammar.isLhsR(label)) {
-                        labels.get(label).set(from , to + n * edge.getN(), 1);
+                        labels.get(label).set(from, to + n * edge.getN(), 1);
                     } else {
                         labels.get(label).set(from + n * edge.getN(), to, 1);
                     }
                 } else {
-                    labels.get(label).set(from , to , 1);
+                    labels.get(label).set(from, to, 1);
                 }
-                
+
                 String rhs = grammar.getRHSByLHS(label);
 
                 if (rhs != null) {
                     endsWithI = rhs.endsWith("_i");
                     if (edge.hasN() && endsWithI) {
                         if (grammar.isLhsR(label)) {
-                            labels.get(rhs).set(from, to + n * edge.getN() , 1);
+                            labels.get(rhs).set(from, to + n * edge.getN(), 1);
                         } else {
-                            labels.get(rhs).set(from + n * edge.getN(), to  , 1);
+                            labels.get(rhs).set(from + n * edge.getN(), to, 1);
                         }
                     } else {
-                        labels.get(rhs).set(from , to , 1);
+                        labels.get(rhs).set(from, to, 1);
                     }
                 }
             }
         }
-        
+
         return labels;
     }
 
-    private static List<Edge> readEdgesFromFile(String filename, Grammar grammar) {
+    public static List<Edge> readEdgesFromFile(String filename, Grammar grammar) {
         List<Edge> edges = new ArrayList<>();
 
         Set<Integer> nums = new HashSet<>();
@@ -274,14 +270,31 @@ public class Matrix {
     public static void checkingEpsilonCases(Grammar.Production a, HashMap<String, AbstractMatrix> labels, Optimizations opt, AsistantMatrix storage) {
 
         if (a.getLHS() != null) {
-            for (int col = 0; col < labels.get(a.getLHS()).getNumCols(); col++) {
-                int colStart = labels.get(a.getLHS()).col_idx(col);
-                int colEnd = labels.get(a.getLHS()).col_idx(col + 1);
+            boolean endsWithI = a.getLHS().endsWith("_i");
+            boolean endsWithI2 = a.getRHS().endsWith("_i");
+            if (endsWithI && !endsWithI2) {
+                storage.getMatrix("cell", 1).matrix = BlockHelper.reverse(labels.get(a.getLHS()).matrix);
 
-                for (int idx = colStart; idx < colEnd; idx++) {
-                    int row = labels.get(a.getLHS()).nz_rows(idx);
-                    
-                    labels.get(a.getRHS()).set(row, col, 1);
+                for (int col = 0; col < storage.getMatrix(1).getNumCols(); col++) {
+                    int colStart = storage.getMatrix(1).col_idx(col);
+                    int colEnd = storage.getMatrix(1).col_idx(col + 1);
+
+                    for (int idx = colStart; idx < colEnd; idx++) {
+                        int row = storage.getMatrix(1).nz_rows(idx);
+
+                        labels.get(a.getRHS()).set(row, col, 1);
+                    }
+                }
+            } else {
+                for (int col = 0; col < labels.get(a.getLHS()).getNumCols(); col++) {
+                    int colStart = labels.get(a.getLHS()).col_idx(col);
+                    int colEnd = labels.get(a.getLHS()).col_idx(col + 1);
+
+                    for (int idx = colStart; idx < colEnd; idx++) {
+                        int row = labels.get(a.getLHS()).nz_rows(idx);
+
+                        labels.get(a.getRHS()).set(row, col, 1);
+                    }
                 }
             }
         }

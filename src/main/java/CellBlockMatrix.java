@@ -34,8 +34,7 @@ public class CellBlockMatrix extends AbstractMatrix {
     public void add(AbstractMatrix other, AsistantMatrix asistant, int n) {
         if (isCell(other)) {
             CommonOps_DSCC.add(1.0, this.matrix, 1.0, other.matrix, asistant.getMatrix("cell", n).matrix, null, null);
-        }
-        else {
+        } else {
             CommonOps_DSCC.add(1.0, this.matrix, 1.0, BlockHelper.reverse(other.matrix), asistant.getMatrix("cell", n).matrix, null, null);
         }
     }
@@ -54,7 +53,6 @@ public class CellBlockMatrix extends AbstractMatrix {
     public AbstractMatrix removeNonPositiveElements() {
         AbstractMatrix positiveMatrix = new CellBlockMatrix(new DMatrixSparseCSC(matrix.numRows, matrix.numCols));
         DMatrixSparseCSC tmp = this.matrix.copy();
-
 
         for (int col = 0; col < tmp.getNumCols(); col++) {
             int colStart = tmp.col_idx[col];

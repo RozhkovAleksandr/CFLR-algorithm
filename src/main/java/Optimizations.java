@@ -5,13 +5,54 @@ public class Optimizations {
     private final boolean opt3;
     private final boolean opt4;
     private final boolean opt5;
+    public final int number;
 
-    public Optimizations(boolean opt1, boolean opt2, boolean opt3, boolean opt4, boolean opt5) {
-        this.opt1 = opt1;
-        this.opt2 = opt2;
-        this.opt3 = opt3;
-        this.opt4 = opt4;
-        this.opt5 = opt5;
+    public Optimizations(String optim) {
+        number = Integer.parseInt(optim);
+        switch (optim) {
+            case "5":
+                this.opt1 = true;
+                this.opt2 = false;
+                this.opt3 = false;
+                this.opt4 = false;
+                this.opt5 = true;
+                break;
+            case "4":
+                this.opt1 = true;
+                this.opt2 = false;
+                this.opt3 = false;
+                this.opt4 = true;
+                this.opt5 = false;
+                break;
+            case "3":
+                this.opt1 = true;
+                this.opt2 = false;
+                this.opt3 = true;
+                this.opt4 = false;
+                this.opt5 = false;
+                break;
+            case "2":
+                this.opt1 = true;
+                this.opt2 = true;
+                this.opt3 = false;
+                this.opt4 = false;
+                this.opt5 = false;
+                break;
+            case "1":
+                this.opt1 = true;
+                this.opt2 = false;
+                this.opt3 = false;
+                this.opt4 = false;
+                this.opt5 = false;
+                break;
+            default: 
+                this.opt1 = false;
+                this.opt2 = false;
+                this.opt3 = false;
+                this.opt4 = false;
+                this.opt5 = false;
+                break;
+        }
     }
 
     public boolean isOpt1() {

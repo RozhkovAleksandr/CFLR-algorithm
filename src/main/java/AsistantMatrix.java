@@ -1,3 +1,4 @@
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +32,7 @@ public class AsistantMatrix {
                 tmp22 = new VectorBlockMatrix(new DMatrixSparseCSC(n * block_size, n));
                 tmp33 = new VectorBlockMatrix(new DMatrixSparseCSC(n * block_size, n));
                 tmp111 = new VectorBlockMatrix(new DMatrixSparseCSC(n, n * block_size));
-                tmp222 = new VectorBlockMatrix(new DMatrixSparseCSC(n, n *  block_size));
+                tmp222 = new VectorBlockMatrix(new DMatrixSparseCSC(n, n * block_size));
                 tmp333 = new VectorBlockMatrix(new DMatrixSparseCSC(n, n * block_size));
 
                 order.add(tmp1);
