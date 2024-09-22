@@ -1,0 +1,14 @@
+S	d_r	V_d
+V1
+V3	a	V2_V3
+V2_V3	V2	V3
+V2	d_r	V_d
+a_r_V1	a_r	V1
+V	V1	V2_V3
+V3
+V2
+V_d	V	d
+V1	V2	a_r_V1
+
+Count:
+S

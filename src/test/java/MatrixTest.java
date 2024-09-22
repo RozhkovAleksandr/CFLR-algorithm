@@ -1,214 +1,254 @@
-// import java.util.Arrays;
-// import java.util.HashMap;
-// import java.util.List;
+import java.util.List;
 
-// import static org.junit.jupiter.api.Assertions.assertEquals;
-// import static org.junit.jupiter.api.Assertions.assertTrue;
-// import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
 
-// public class MatrixTest {
-//     private Optimizations optStandart() {
-//         Optimizations optimizations = new Optimizations(true, true, false, false, false);
+public class MatrixTest {
+    private Optimizations optStandart() {
+        Optimizations optimizations = new Optimizations("5");
 
-//         return optimizations;
-//     }
+        return optimizations;
+    }
 
-//     @Test
-//     public void testSimpleWords() {
-//         List<Edge> edges = Arrays.asList(
-//             new Edge(1, 2, "a"),
-//             new Edge(2, 3, "b")
-//         );
+    @Test
+    public void testSimpleWords() {
 
-//         Grammar grammar = new Grammar();
-//         grammar.addProductionRules("a", "A");
-//         grammar.addProductionRules("b", "B");
-//         grammar.addProductionRules("AB", "S");
+        Grammar grammar = new Grammar();
+        Matrix.parseGrammarFile("src/test/java/values/SimpleWords/grammarSimple.cnf", grammar);
 
-//         Optimizations optimizations = optStandart();
+        List<Edge> edges = Matrix.readEdgesFromFile("src/test/java/values/SimpleWords/pathSimple.g", grammar);
 
-//         HashMap<String, AbstractMatrix> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
+        System.out.println("Grammar: " + grammar);
+        System.out.println("Edges: " + edges);
 
-//         AbstractMatrix matrixS = result.get("S");
-//         assertEquals(1, matrixS.nz_length());   
-//     }
+        Optimizations optimizations = optStandart();
 
-//     @Test
-//     public void testDifficultWords() {
+        AbstractMatrix matrixS = Matrix.contextFreePathQuerying(grammar, edges, optimizations, "S");
+        assertEquals(1, matrixS.nz_length());   
+    }
 
-//         List<Edge> edges = Arrays.asList(
-//             new Edge(1, 2, "apple"),
-//             new Edge(2, 3, "pineapple")
-//         );
-        
-//         Grammar grammar = new Grammar();
-//         grammar.addProductionRules("apple", "A");
-//         grammar.addProductionRules("pineapple", "B");
-//         grammar.addProductionRules("AB", "S");
+    @Test
+    public void testSimpleWords0() {
 
-//         Optimizations optimizations = optStandart();
+        Grammar grammar = new Grammar();
+        Matrix.parseGrammarFile("src/test/java/values/SimpleWords/grammarSimple.cnf", grammar);
 
-//         HashMap<String, AbstractMatrix> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
+        List<Edge> edges = Matrix.readEdgesFromFile("src/test/java/values/SimpleWords/pathSimple.g", grammar);
 
-//         AbstractMatrix matrixS = result.get("S");
-//         assertEquals(1, matrixS.nz_length());
-//     }
+        System.out.println("Grammar: " + grammar);
+        System.out.println("Edges: " + edges);
 
-//     @Test
-//     public void testEmpty() {
-//         List<Edge> edges = Arrays.asList(
-//                 new Edge(1, 2, "a"),
-//                 new Edge(2, 3, "a"),
-//                 new Edge(4, 5, "b")
-//         );
+        Optimizations optimizations = new Optimizations("0");
 
-//         Grammar grammar = new Grammar();
-//         grammar.addProductionRules("a", "A");
-//         grammar.addProductionRules("b", "B");
-//         grammar.addProductionRules("AB", "S");
+        AbstractMatrix matrixS = Matrix.contextFreePathQuerying(grammar, edges, optimizations, "S");
+        assertEquals(1, matrixS.nz_length());   
+    }
 
-//         Optimizations optimizations = optStandart();
+    @Test
+    public void testSimpleWords1() {
 
-//         HashMap<String, AbstractMatrix> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
+        Grammar grammar = new Grammar();
+        Matrix.parseGrammarFile("src/test/java/values/SimpleWords/grammarSimple.cnf", grammar);
 
-//         AbstractMatrix matrixS = result.get("S");
-//         boolean hasNonZeroElements = matrixS.nz_length() == 0;
-//         assertTrue(hasNonZeroElements);  
-//     }
+        List<Edge> edges = Matrix.readEdgesFromFile("src/test/java/values/SimpleWords/pathSimple.g", grammar);
 
-//     @Test
-//     public void testLeftMany() {
-//         List<Edge> edges = Arrays.asList(
-//             new Edge(1, 2, "a"),
-//             new Edge(2, 3, "a"),
-//             new Edge(4, 5, "b"),
-//             new Edge(5, 5, "b"),
-//             new Edge(1, 5, "b"),
-//             new Edge(2, 5, "b"),
-//             new Edge(3, 5, "b")
-//         );
-        
-//         Grammar grammar = new Grammar();
-//         grammar.addProductionRules("a", "A");
-//         grammar.addProductionRules("b", "B");
-//         grammar.addProductionRules("AB", "S");
+        System.out.println("Grammar: " + grammar);
+        System.out.println("Edges: " + edges);
 
-//         Optimizations optimizations = optStandart();
+        Optimizations optimizations = new Optimizations("1");
 
-//         HashMap<String, AbstractMatrix> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
+        AbstractMatrix matrixS = Matrix.contextFreePathQuerying(grammar, edges, optimizations, "S");
+        assertEquals(1, matrixS.nz_length());   
+    }
 
-//         AbstractMatrix matrixS = result.get("S");
-//         boolean elem = matrixS.nz_length() == 2;
-//         assertTrue(elem);
-//     }
+    @Test
+    public void testSimpleWords2() {
 
-//     @Test
-//     public void testMultiplePaths() {
-//         List<Edge> edges = Arrays.asList(
-//                 new Edge(1, 2, "a"),
-//                 new Edge(1, 3, "a"),
-//                 new Edge(2, 4, "b"),
-//                 new Edge(3, 4, "b"),
-//                 new Edge(4, 5, "c")
-//         );
+        Grammar grammar = new Grammar();
+        Matrix.parseGrammarFile("src/test/java/values/SimpleWords/grammarSimple.cnf", grammar);
 
-//         Grammar grammar = new Grammar();
-//         grammar.addProductionRules("a", "A");
-//         grammar.addProductionRules("b", "B");
-//         grammar.addProductionRules("c", "C");
-//         grammar.addProductionRules("AB", "S");
-//         grammar.addProductionRules("BC", "S");
+        List<Edge> edges = Matrix.readEdgesFromFile("src/test/java/values/SimpleWords/pathSimple.g", grammar);
 
-//         Optimizations optimizations = optStandart();
+        System.out.println("Grammar: " + grammar);
+        System.out.println("Edges: " + edges);
 
-//         HashMap<String, AbstractMatrix> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
+        Optimizations optimizations = new Optimizations("2");
 
-//         AbstractMatrix matrixS = result.get("S");
-//         boolean hasNonZeroElements = matrixS.nz_length() == 3;
-//         assertTrue(hasNonZeroElements);
-//     }
+        AbstractMatrix matrixS = Matrix.contextFreePathQuerying(grammar, edges, optimizations, "S");
+        assertEquals(1, matrixS.nz_length());   
+    }
 
-//     @Test
-//     public void testGraphWithCycle() {
-//         List<Edge> edges = Arrays.asList(
-//                 new Edge(1, 2, "a"),
-//                 new Edge(2, 3, "b"),
-//                 new Edge(3, 2, "a"), 
-//                 new Edge(3, 4, "c")
-//         );
+    @Test
+    public void testSimpleWords3() {
 
-//         Grammar grammar = new Grammar();
-//         grammar.addProductionRules("a", "A");
-//         grammar.addProductionRules("b", "B");
-//         grammar.addProductionRules("c", "C");
-//         grammar.addProductionRules("AB", "S");
+        Grammar grammar = new Grammar();
+        Matrix.parseGrammarFile("src/test/java/values/SimpleWords/grammarSimple.cnf", grammar);
 
-//         Optimizations optimizations = optStandart();
+        List<Edge> edges = Matrix.readEdgesFromFile("src/test/java/values/SimpleWords/pathSimple.g", grammar);
 
-//         HashMap<String, AbstractMatrix> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
-//         AbstractMatrix matrixS = result.get("S");
-//         boolean hasNonZeroElements = matrixS.nz_length() == 2;
-//         assertTrue(hasNonZeroElements);
-//     }
+        System.out.println("Grammar: " + grammar);
+        System.out.println("Edges: " + edges);
 
-//     @Test
-//     public void testNoPaths() {
-//         List<Edge> edges = Arrays.asList(
-//                 new Edge(1, 2, "a"),
-//                 new Edge(3, 4, "b")
-//         );
+        Optimizations optimizations = new Optimizations("3");
 
-//         Grammar grammar = new Grammar();
-//         grammar.addProductionRules("a", "A");
-//         grammar.addProductionRules("b", "B");
-//         grammar.addProductionRules("AB", "S");
+        AbstractMatrix matrixS = Matrix.contextFreePathQuerying(grammar, edges, optimizations, "S");
+        assertEquals(1, matrixS.nz_length());   
+    }
 
-//         Optimizations optimizations = optStandart();
-  
-//         HashMap<String, AbstractMatrix> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
+    @Test
+    public void testGraphWithCycle() {
+        Grammar grammar = new Grammar();
+        Matrix.parseGrammarFile("src/test/java/values/GraphWithCycle/an_bn.cnf", grammar);
 
-//         AbstractMatrix matrixS = result.get("S");
-//         boolean hasNonZeroElements = matrixS.nz_length() == 0;
-//         assertTrue(hasNonZeroElements); 
-//     }
+        List<Edge> edges = Matrix.readEdgesFromFile("src/test/java/values/GraphWithCycle/tree.g", grammar);
 
-//     @Test
-//     public void testSelfLoop() {
-//         List<Edge> edges = Arrays.asList(
-//                 new Edge(1, 1, "a")
-//         );
+        Optimizations optimizations = optStandart();
 
-//         Grammar grammar = new Grammar();
-//         grammar.addProductionRules("a", "A");
-//         grammar.addProductionRules("AA", "S");
+        AbstractMatrix matrixS = Matrix.contextFreePathQuerying(grammar, edges, optimizations, "S");
+        boolean hasNonZeroElements = matrixS.nz_length() == 20;
+        assertTrue(hasNonZeroElements);
+    }
 
-//         Optimizations optimizations = optStandart();
+    @Test
+    public void testIndexedSimple() {
+        Grammar grammar = new Grammar();
+        Matrix.parseGrammarFile("src/test/java/values/IndexedSimple/an_bn_indexed.cnf", grammar);
 
-//         HashMap<String, AbstractMatrix> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
+        List<Edge> edges = Matrix.readEdgesFromFile("src/test/java/values/IndexedSimple/indexed_tree.g", grammar);
 
-//         AbstractMatrix matrixS = result.get("S");
-//         boolean hasNonZeroElements = matrixS.nz_length() == 1;
-//         assertTrue(hasNonZeroElements);
-//     }
+        Optimizations optimizations = optStandart();
 
-//     @Test
-//     public void testCyclicGraph() {
-//         List<Edge> edges = Arrays.asList(
-//                 new Edge(1, 2, "a"),
-//                 new Edge(2, 1, "b")
-//         );
+        AbstractMatrix matrixS = Matrix.contextFreePathQuerying(grammar, edges, optimizations, "S");
+        boolean hasNonZeroElements = matrixS.nz_length() == 12;
+        assertTrue(hasNonZeroElements);
+    }
 
-//         Grammar grammar = new Grammar();
-//         grammar.addProductionRules("a", "A");
-//         grammar.addProductionRules("b", "B");
-//         grammar.addProductionRules("AB", "S");
+    @Test
+    public void testIndexedSimple4() {
+        Grammar grammar = new Grammar();
+        Matrix.parseGrammarFile("src/test/java/values/IndexedSimple/an_bn_indexed.cnf", grammar);
 
-//         Optimizations optimizations = optStandart();
+        List<Edge> edges = Matrix.readEdgesFromFile("src/test/java/values/IndexedSimple/indexed_tree.g", grammar);
 
-//         HashMap<String, AbstractMatrix> result = Matrix.contextFreePathQuerying(grammar, edges, optimizations);
+        Optimizations optimizations = new Optimizations("4");
 
-//         AbstractMatrix matrixS = result.get("S");
-//         boolean hasNonZeroElements = matrixS.nz_length() != 0;
-//         assertTrue(hasNonZeroElements);
-//     }
-// }
+        AbstractMatrix matrixS = Matrix.contextFreePathQuerying(grammar, edges, optimizations, "S");
+        boolean hasNonZeroElements = matrixS.nz_length() == 12;
+        assertTrue(hasNonZeroElements);
+    }
+
+    @Test
+    public void testGraphWithEpsilon() {
+        Grammar grammar = new Grammar();
+        Matrix.parseGrammarFile("src/test/java/values/GraphWithEpsilon/c_alias.cnf", grammar);
+
+        List<Edge> edges = Matrix.readEdgesFromFile("src/test/java/values/GraphWithEpsilon/c_prog.g", grammar);
+
+        Optimizations optimizations = optStandart();
+
+        AbstractMatrix matrixS = Matrix.contextFreePathQuerying(grammar, edges, optimizations, "S");
+        boolean hasNonZeroElements = matrixS.nz_length() == 156;
+        assertTrue(hasNonZeroElements);
+    }
+
+    @Test
+    public void testGraphWithEpsilon3() {
+        Grammar grammar = new Grammar();
+        Matrix.parseGrammarFile("src/test/java/values/GraphWithEpsilon/c_alias.cnf", grammar);
+
+        List<Edge> edges = Matrix.readEdgesFromFile("src/test/java/values/GraphWithEpsilon/c_prog.g", grammar);
+
+        Optimizations optimizations = new Optimizations("3");
+
+        AbstractMatrix matrixS = Matrix.contextFreePathQuerying(grammar, edges, optimizations, "S");
+        boolean hasNonZeroElements = matrixS.nz_length() == 156;
+        assertTrue(hasNonZeroElements);
+    }
+
+    @Test
+    public void testGraphWithEpsilon4() {
+        Grammar grammar = new Grammar();
+        Matrix.parseGrammarFile("src/test/java/values/GraphWithEpsilon/c_alias.cnf", grammar);
+
+        List<Edge> edges = Matrix.readEdgesFromFile("src/test/java/values/GraphWithEpsilon/c_prog.g", grammar);
+
+        Optimizations optimizations = new Optimizations("4");
+
+        AbstractMatrix matrixS = Matrix.contextFreePathQuerying(grammar, edges, optimizations, "S");
+        boolean hasNonZeroElements = matrixS.nz_length() == 156;
+        assertTrue(hasNonZeroElements);
+    }
+
+    @Test
+    public void testIndexedSimple2() {
+        Grammar grammar = new Grammar();
+        Matrix.parseGrammarFile("src/test/java/values/IndexedSimple2/an_bn_indexed2.cnf", grammar);
+
+        List<Edge> edges = Matrix.readEdgesFromFile("src/test/java/values/IndexedSimple2/indexed_tree.g", grammar);
+
+        Optimizations optimizations = optStandart();
+
+        AbstractMatrix matrixS = Matrix.contextFreePathQuerying(grammar, edges, optimizations, "S");
+        boolean hasNonZeroElements = matrixS.nz_length() == 8;
+        assertTrue(hasNonZeroElements);
+    }
+
+    @Test
+    public void testCycleSimple() {
+        Grammar grammar = new Grammar();
+        Matrix.parseGrammarFile("src/test/java/values/CycleSimple/transitive.cnf", grammar);
+
+        List<Edge> edges = Matrix.readEdgesFromFile("src/test/java/values/CycleSimple/loop.g", grammar);
+
+        Optimizations optimizations = optStandart();
+
+        AbstractMatrix matrixS = Matrix.contextFreePathQuerying(grammar, edges, optimizations, "A");
+        boolean hasNonZeroElements = matrixS.nz_length() == 9;
+        assertTrue(hasNonZeroElements);
+    }
+
+    @Test
+    public void testCycleSimple2() {
+        Grammar grammar = new Grammar();
+        Matrix.parseGrammarFile("src/test/java/values/CycleSimple/transitive.cnf", grammar);
+
+        List<Edge> edges = Matrix.readEdgesFromFile("src/test/java/values/CycleSimple/loop.g", grammar);
+
+        Optimizations optimizations = new Optimizations("2");
+
+        AbstractMatrix matrixS = Matrix.contextFreePathQuerying(grammar, edges, optimizations, "A");
+        boolean hasNonZeroElements = matrixS.nz_length() == 9;
+        assertTrue(hasNonZeroElements);
+    }
+
+    @Test
+    public void testManyRules() {
+        Grammar grammar = new Grammar();
+        Matrix.parseGrammarFile("src/test/java/values/ManyRules/java_points_to.cnf", grammar);
+
+        List<Edge> edges = Matrix.readEdgesFromFile("src/test/java/values/ManyRules/java_prog.g", grammar);
+
+        Optimizations optimizations = optStandart();
+
+        AbstractMatrix matrixS = Matrix.contextFreePathQuerying(grammar, edges, optimizations, "PT");
+        boolean hasNonZeroElements = matrixS.nz_length() == 6;
+        System.out.println(matrixS.nz_length());
+        assertTrue(hasNonZeroElements);
+    }
+
+    @Test
+    public void testManyRules4() {
+        Grammar grammar = new Grammar();
+        Matrix.parseGrammarFile("src/test/java/values/ManyRules/java_points_to.cnf", grammar);
+
+        List<Edge> edges = Matrix.readEdgesFromFile("src/test/java/values/ManyRules/java_prog.g", grammar);
+
+        Optimizations optimizations = new Optimizations("4");
+
+        AbstractMatrix matrixS = Matrix.contextFreePathQuerying(grammar, edges, optimizations, "PT");
+        boolean hasNonZeroElements = matrixS.nz_length() == 6;
+        System.out.println(matrixS.nz_length());
+        assertTrue(hasNonZeroElements);
+    }
+}
