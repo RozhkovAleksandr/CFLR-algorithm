@@ -14,7 +14,7 @@ public class FastMatrixCell extends AbstractMatrix {
     public FastMatrixCell(DMatrixSparseCSC matrix) {
         super(matrix);
         this.matrices.add(matrix);
-        this.b = 1.5;
+        this.b = 10;
     }
 
     @Override

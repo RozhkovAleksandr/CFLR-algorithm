@@ -14,7 +14,7 @@ public class LazyMatrix extends AbstractMatrix {
     public LazyMatrix(DMatrixSparseCSC matrix) {
         super(matrix);
         this.matrices.add(matrix);
-        this.b = 1.5;
+        this.b = 10;
     }
 
     @Override
