@@ -44,7 +44,7 @@ public class Main {
             for (int idx = colStart; idx < colEnd; idx++) {
                 int row = result.nz_rows(idx);
 
-                try (FileWriter writer = new FileWriter(file, true)) { // Дописывание
+                try (FileWriter writer = new FileWriter(file, true)) {
                     writer.write(row + "\t" + col + "\n");
                 } catch (IOException e) {
                     System.err.println("Error writing to the file: " + e.getMessage());
