@@ -20,15 +20,16 @@ Arguments:
 * <optimization_level>: Integer value representing the optimization level to be applied. Possible values:
 
     * 0: No optimizations
-    * 1: Optimization 1
-    * 2: Optimization 1 and 2
-    * 3: Optimization 1 and 3
-    * ...
-    * 5: All optimizations
+    * 1: Incremental calculations
+    * 2: Matrix formats
+    * 3: Delayed matrix addition
+    * 4: Production patterns
+    * **5: All optimizations**
 
 * <start_symbol>: Nonterminal symbol from the grammar that represents the starting point of the recognition process.
 
 
 ### Output
 
-The program will display the result of the recognition process, indicating how many paths have been found.
+The program will display the result of the recognition process, indicating how many paths have been found. Additionally, all reachable pairs of vertices will be saved in a file named **reachability_pairs.txt**.
+

@@ -1,3 +1,4 @@
+package Matrix;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -5,7 +6,7 @@ import java.util.Iterator;
 import org.ejml.data.DMatrixSparseCSC;
 import org.ejml.sparse.csc.CommonOps_DSCC;
 
-class LazyMatrix extends AbstractMatrix {
+public class LazyMatrix extends AbstractMatrix {
 
     private final HashSet<DMatrixSparseCSC> matrices = new HashSet<>();
     private final double b;
@@ -15,7 +16,6 @@ class LazyMatrix extends AbstractMatrix {
         this.matrices.add(matrix);
         this.b = 1.5;
     }
-
 
     @Override
     public void multiply(AbstractMatrix other, AsistantMatrix asistant, int n, String production) {
@@ -34,7 +34,7 @@ class LazyMatrix extends AbstractMatrix {
 
         for (DMatrixSparseCSC m : matrices) {
             CommonOps_DSCC.mult(other, m, tmp);
-            
+
             CommonOps_DSCC.add(1.0, tmp, 1.0, result.copy().matrix, result.matrix, null, null);
         }
     }
@@ -45,7 +45,7 @@ class LazyMatrix extends AbstractMatrix {
         while (f) {
             f = false;
             for (DMatrixSparseCSC m : matrices) {
-                if (m.nz_length * b >= other.nz_length() || other.nz_length() * b >= m.nz_length) { 
+                if (m.nz_length * b >= other.nz_length() || other.nz_length() * b >= m.nz_length) {
                     CommonOps_DSCC.add(1.0, m, 1.0, other.matrix, asistant.getMatrix(n).matrix, null, null);
                     matrices.remove(m);
 

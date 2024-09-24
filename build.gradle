@@ -41,4 +41,4 @@ jacocoTestReport {
     }
 }
 
-mainClassName = 'Matrix'
+mainClassName = 'Main'

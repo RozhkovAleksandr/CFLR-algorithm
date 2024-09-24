@@ -1,10 +1,11 @@
+package Matrix;
 
 import java.util.HashMap;
 
 import org.ejml.data.DMatrixSparseCSC;
 import org.ejml.sparse.csc.CommonOps_DSCC;
 
-class FormatMatrix extends AbstractMatrix {
+public class FormatMatrix extends AbstractMatrix {
 
     public FormatMatrix(DMatrixSparseCSC matrix) {
         super(matrix);

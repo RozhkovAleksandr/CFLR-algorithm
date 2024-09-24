@@ -1,3 +1,4 @@
+package Matrix;
 
 import org.ejml.data.DMatrixSparseCSC;
 
@@ -134,7 +135,6 @@ public class BlockHelper {
 
         }
         return ans;
-
     }
 
     public static CellBlockMatrix reverseVectorBlockMatrix(AbstractMatrix tmp) {

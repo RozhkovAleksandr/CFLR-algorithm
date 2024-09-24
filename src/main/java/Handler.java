@@ -1,4 +1,3 @@
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -11,115 +10,23 @@ import java.util.Set;
 
 import org.ejml.data.DMatrixSparseCSC;
 
-public class Matrix {
+import Matrix.AbstractMatrix;
+import Matrix.BaseMatrix;
+import Matrix.CellBlockMatrix;
+import Matrix.FastMatrixCell;
+import Matrix.FastMatrixVector;
+import Matrix.FormatMatrix;
+import Matrix.LazyMatrix;
+import Matrix.VectorBlockMatrix;
+
+
+
+public class Handler {
 
     static int block_size = 1;
     static int n = 0;
-
-    // enter vertices starting from 0 and do not skip values
-    public static void main(String[] args) {
-        if (args.length != 4) {
-            System.err.println("Invalid argument format. You need to specify two files: file path, file grammar, optimizations number.");
-            System.exit(1);
-        }
-
-        String filePath = args[1];
-        String fileGrammar = args[0];
-        String optimNumber = args[2];
-        String ultimate = args[3];
-
-        Grammar grammar = new Grammar();
-        parseGrammarFile(fileGrammar, grammar);
-
-        List<Edge> edges = readEdgesFromFile(filePath, grammar);
-
-        Optimizations optimizations = new Optimizations(optimNumber);
-
-        contextFreePathQuerying(grammar, edges, optimizations, ultimate);
-    }
-
-    public static AbstractMatrix contextFreePathQuerying(Grammar grammar, List<Edge> edges, Optimizations optimizations, String ultimate) {
-        HashMap<String, AbstractMatrix> labels = makeMatrix(grammar, edges, optimizations);
-        HashMap<String, AbstractMatrix> old = makeMatrix(grammar, Arrays.asList(), optimizations);
-
-        AbstractMatrix tmp;
-        AsistantMatrix storage = new AsistantMatrix(optimizations.number, n, block_size);
-
-        boolean changed;
-        do {
-            changed = false;
-            for (Grammar.Production a : grammar.getProductions()) {
-                if (a.getLHSL() == null) {
-                    checkingEpsilonCases(a, labels, optimizations, storage);
-                    continue;
-                }
-
-                String key1 = a.getLHSL();
-                String key2 = a.getLHSR();
-                String production = a.getRHS();
-
-                if (optimizations.isOpt1()) {
-                    old.get(key1).multiply(labels.get(key2), storage, 0, production);
-
-                    if (!optimizations.isOpt3() && !optimizations.isOpt5()) {
-                        for (String key : labels.keySet()) {
-
-                            labels.get(key).add(old.get(key), storage, 1);
-
-                            if (storage.getMatrix(1).nz_length() != old.get(key).nz_length()) {
-                                changed = true;
-                            }
-
-                            old.put(key, storage.getMatrix(1).copy());
-                        }
-                    } else {
-                        for (String key : labels.keySet()) {
-                            old.get(key).add(labels.get(key), storage, 2);
-                        }
-                    }
-
-                    labels.get(key1).multiply(old.get(key2), storage, 1, production);
-
-                    storage.getMatrix(0).add(storage.getMatrix(1), storage, 1);
-
-                    old.get(production).subtraction(storage.getMatrix(1), storage, 2);
-
-                    tmp = storage.getMatrix(1).removeNonPositiveElements();
-
-                    if ((optimizations.isOpt3() && tmp.nz_length() != 0) || (optimizations.isOpt5() && tmp.nz_length() != 0)) {
-                        changed = true;
-                    }
-
-                    labels.put(production, tmp.copy());
-
-                } else {
-                    AbstractMatrix keyMatrix = labels.get(production);
-
-                    labels.get(key1).multiply(labels.get(key2), storage, 1, production);
-
-                    storage.getMatrix(1).copy().add(keyMatrix, storage, 1);
-
-                    if (keyMatrix.nz_length() != storage.getMatrix(1).nz_length()) {
-                        changed = true;
-                        labels.put(production, storage.getMatrix(1).copy());
-                    }
-                }
-            }
-        } while (changed);
-
-        if (optimizations.isOpt3() || optimizations.isOpt5()) {
-            old.get(ultimate).toOne(storage, 1);
-            return storage.getMatrix(1);
-        }
-
-        if (optimizations.isOpt2() || optimizations.isOpt4()) {
-            return old.get(ultimate);
-        }
-
-        return labels.get(ultimate);
-    }
-
-    private static HashMap<String, AbstractMatrix> makeMatrix(Grammar grammar, List<Edge> edges, Optimizations optimizations) {
+    
+    public static HashMap<String, AbstractMatrix> makeMatrix(Grammar grammar, List<Edge> edges, Optimizations optimizations) {
         HashMap<String, AbstractMatrix> labels = new HashMap<>();
         boolean endsWithI;
         for (String key : grammar.getLetters()) {
@@ -267,35 +174,80 @@ public class Matrix {
         grammar.addNewRules();
     }
 
-    public static void checkingEpsilonCases(Grammar.Production a, HashMap<String, AbstractMatrix> labels, Optimizations opt, AsistantMatrix storage) {
+    public static void checkingEpsilonCases(Grammar.Production a, HashMap<String, AbstractMatrix> labels, Optimizations opt) {
 
         if (a.getLHS() != null) {
             boolean endsWithI = a.getLHS().endsWith("_i");
             boolean endsWithI2 = a.getRHS().endsWith("_i");
-            if (endsWithI && !endsWithI2) {
-                storage.getMatrix("cell", 1).matrix = BlockHelper.reverse(labels.get(a.getLHS()).matrix);
 
-                for (int col = 0; col < storage.getMatrix(1).getNumCols(); col++) {
-                    int colStart = storage.getMatrix(1).col_idx(col);
-                    int colEnd = storage.getMatrix(1).col_idx(col + 1);
+            switch (endsWithI ? (endsWithI2 ? 1 : 2) : (endsWithI2 ? 3 : 0)) {
+                case 1:
+                    if (labels.get(a.getLHS()).getNumCols() > labels.get(a.getRHS()).getNumCols()) {
+                        for (int col = 0; col < labels.get(a.getLHS()).getNumCols(); col++) {
+                            int colStart = labels.get(a.getLHS()).col_idx(col);
+                            int colEnd = labels.get(a.getLHS()).col_idx(col + 1);
 
-                    for (int idx = colStart; idx < colEnd; idx++) {
-                        int row = storage.getMatrix(1).nz_rows(idx);
+                            for (int idx = colStart; idx < colEnd; idx++) {
+                                int row = labels.get(a.getLHS()).nz_rows(idx);
 
-                        labels.get(a.getRHS()).set(row, col, 1);
+                                labels.get(a.getRHS()).set(row + (labels.get(a.getLHS()).getNumCols() / (labels.get(a.getLHS()).getNumCols() / labels.get(a.getLHS()).getNumRows())) * (col / labels.get(a.getLHS()).getNumRows()), col % labels.get(a.getLHS()).getNumRows(), 1);
+                            }
+                        }
+                    } else {
+                        if (labels.get(a.getLHS()).getNumCols() < labels.get(a.getRHS()).getNumCols()) {
+                            for (int col = 0; col < labels.get(a.getLHS()).getNumCols(); col++) {
+                                int colStart = labels.get(a.getLHS()).col_idx(col);
+                                int colEnd = labels.get(a.getLHS()).col_idx(col + 1);
+
+                                for (int idx = colStart; idx < colEnd; idx++) {
+                                    int row = labels.get(a.getLHS()).nz_rows(idx);
+
+                                    labels.get(a.getRHS()).set(row % labels.get(a.getLHS()).getNumCols(), col + (labels.get(a.getLHS()).getNumRows() / (labels.get(a.getLHS()).getNumRows() / labels.get(a.getLHS()).getNumCols())) * (row / labels.get(a.getLHS()).getNumCols()), 1);
+                                }
+                            }
+                        } else {
+                            for (int col = 0; col < labels.get(a.getLHS()).getNumCols(); col++) {
+                                int colStart = labels.get(a.getLHS()).col_idx(col);
+                                int colEnd = labels.get(a.getLHS()).col_idx(col + 1);
+
+                                for (int idx = colStart; idx < colEnd; idx++) {
+                                    int row = labels.get(a.getLHS()).nz_rows(idx);
+
+                                    labels.get(a.getRHS()).set(row, col, 1);
+                                }
+                            }
+                        }
                     }
-                }
-            } else {
-                for (int col = 0; col < labels.get(a.getLHS()).getNumCols(); col++) {
-                    int colStart = labels.get(a.getLHS()).col_idx(col);
-                    int colEnd = labels.get(a.getLHS()).col_idx(col + 1);
 
-                    for (int idx = colStart; idx < colEnd; idx++) {
-                        int row = labels.get(a.getLHS()).nz_rows(idx);
+                    break;
+                case 0:
+                    for (int col = 0; col < labels.get(a.getLHS()).getNumCols(); col++) {
+                        int colStart = labels.get(a.getLHS()).col_idx(col);
+                        int colEnd = labels.get(a.getLHS()).col_idx(col + 1);
 
-                        labels.get(a.getRHS()).set(row, col, 1);
+                        for (int idx = colStart; idx < colEnd; idx++) {
+                            int row = labels.get(a.getLHS()).nz_rows(idx);
+
+                            labels.get(a.getRHS()).set(row, col, 1);
+                        }
                     }
-                }
+                    break;
+                case 2:
+                    int minimum = Math.min(labels.get(a.getLHS()).getNumCols(), labels.get(a.getLHS()).getNumRows());
+
+                    for (int col = 0; col < labels.get(a.getLHS()).getNumCols(); col++) {
+                        int colStart = labels.get(a.getLHS()).col_idx(col);
+                        int colEnd = labels.get(a.getLHS()).col_idx(col + 1);
+
+                        for (int idx = colStart; idx < colEnd; idx++) {
+                            int row = labels.get(a.getLHS()).nz_rows(idx);
+
+                            labels.get(a.getRHS()).set(row % minimum, col % minimum, 1);
+                        }
+                    }
+                    break;
+                default:
+                    throw new IllegalArgumentException("Incorrect grammar. there is no support for the A_i <- a rule");
             }
         }
     }

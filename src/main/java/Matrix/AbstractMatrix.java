@@ -1,9 +1,10 @@
+package Matrix;
 
 import org.ejml.data.DMatrixSparseCSC;
 
 abstract public class AbstractMatrix {
 
-    protected DMatrixSparseCSC matrix;
+    public DMatrixSparseCSC matrix;
 
     public AbstractMatrix(DMatrixSparseCSC matrix) {
         this.matrix = matrix;

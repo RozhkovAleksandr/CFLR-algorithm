@@ -1,8 +1,9 @@
+package Matrix;
 
 import org.ejml.data.DMatrixSparseCSC;
 import org.ejml.sparse.csc.CommonOps_DSCC;
 
-class BaseMatrix extends AbstractMatrix {
+public class BaseMatrix extends AbstractMatrix {
 
     public BaseMatrix(DMatrixSparseCSC matrix) {
         super(matrix);
