@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'application'
+    id 'jacoco'
 }
 
 version '1.0-SNAPSHOT'
@@ -26,6 +27,18 @@ tasks.named('test', Test) {
     testLogging {
         events "passed"
     }
+
+    finalizedBy jacocoTestReport
 }
 
-mainClassName = 'Matrix'
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required.set(true)
+        csv.required.set(true)
+        html.required.set(true)
+        html.outputLocation.set(layout.buildDirectory.dir('reports/jacoco/test')) 
+    }
+}
+
+mainClassName = 'Main'
