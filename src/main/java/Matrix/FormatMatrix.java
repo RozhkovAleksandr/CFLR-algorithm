@@ -1,7 +1,6 @@
 package Matrix;
 
 import java.util.Arrays;
-import java.util.HashMap;
 
 import org.ejml.data.DMatrixSparseCSC;
 import org.ejml.sparse.csc.CommonOps_DSCC;
@@ -17,11 +16,7 @@ public class FormatMatrix extends AbstractMatrix {
         if (other instanceof LazyMatrix) {
             ((LazyMatrix) other).multiplyOther(matrix, asistant.getMatrix(n));
         } else if (other != null) {
-            if (this.matrix.nz_length >= other.matrix.nz_length) {
-                multColumnByColumn(this.matrix, other.matrix, asistant.getMatrix(n).matrix);
-            } else {
-                multRowByRow(this.matrix, other.matrix, asistant.getMatrix(n).matrix);
-            }
+            multHelper(this.matrix, other.matrix, asistant.getMatrix(n).matrix);
         }
     }
 
@@ -64,63 +59,17 @@ public class FormatMatrix extends AbstractMatrix {
         return positiveMatrix;
     }
 
-    private static DMatrixSparseCSC multRowByRow(DMatrixSparseCSC A, DMatrixSparseCSC B, DMatrixSparseCSC result) {
-
-        HashMap<Integer, Integer> freq = transform(A.nz_rows);
-        int counter;
-
-        for (int tmp : freq.keySet()) {
-            counter = 0;
-            for (int k = 0; k < A.numCols; k++) {
-                if (A.get(tmp, k) > 0) {
-                    counter++;
-                    for (int j = 0; j < B.numCols; j++) {
-                        if (B.get(k, j) > 0) {
-                            result.set(tmp, j, 1);
-                        }
-                    }
-
-                    if (counter == freq.get(tmp)) {
-                        break;
-                    }
-                }
-            }
+    private void multHelper(DMatrixSparseCSC m, DMatrixSparseCSC other, DMatrixSparseCSC result) {
+        if (m.nz_length >= other.nz_length) {
+            CommonOps_DSCC.mult(m, other, result);
+        } else {
+            DMatrixSparseCSC tmp1 = new DMatrixSparseCSC(m.numCols, m.numRows);
+            DMatrixSparseCSC tmp2 = new DMatrixSparseCSC(other.numCols, other.numRows);
+            DMatrixSparseCSC tmp3 = new DMatrixSparseCSC(other.numRows, m.numCols);
+            CommonOps_DSCC.transpose(m, tmp1, null);
+            CommonOps_DSCC.transpose(other, tmp2, null);
+            CommonOps_DSCC.mult(tmp2, tmp1, tmp3);
+            CommonOps_DSCC.transpose(tmp3, result, null);
         }
-
-        return result;
-    }
-
-    private static HashMap<Integer, Integer> transform(int[] arr) {
-        HashMap<Integer, Integer> freqHashMap = new HashMap<>();
-
-        for (int num : arr) {
-            freqHashMap.put(num, freqHashMap.getOrDefault(num, 0) + 1);
-        }
-
-        return freqHashMap;
-    }
-
-    private static DMatrixSparseCSC multColumnByColumn(DMatrixSparseCSC A, DMatrixSparseCSC B, DMatrixSparseCSC result) {
-        for (int j = 0; j < B.numCols; j++) {
-            int colStartB = B.col_idx[j];
-            int colEndB = B.col_idx[j + 1];
-
-            if (colStartB != colEndB) {
-                for (int bi = colStartB; bi < colEndB; bi++) {
-                    int rowB = B.nz_rows[bi];
-
-                    int colStartA = A.col_idx[rowB];
-                    int colEndA = A.col_idx[rowB + 1];
-
-                    for (int ai = colStartA; ai < colEndA; ai++) {
-                        int rowA = A.nz_rows[ai];
-
-                        result.set(rowA, j, 1);
-                    }
-                }
-            }
-        }
-
-        return result;
     }
 }

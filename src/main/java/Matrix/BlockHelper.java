@@ -326,7 +326,6 @@ public class BlockHelper {
             
 
             for (int i = 1; i < tmp_col.length; i++) {
-                System.out.println(tmp_col[i]);
                 tmp_col[i] += tmp_col[i - 1];
             }
 
