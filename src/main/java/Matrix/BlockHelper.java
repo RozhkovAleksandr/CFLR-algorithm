@@ -57,6 +57,7 @@ public class BlockHelper {
         matrix1.col_idx = tmp_col;
 
         matrix1.nz_values = nz_values;
+        matrix1.nz_length = tmp_col[tmp_col.length - 1];
 
         return matrix1;
 
@@ -88,7 +89,7 @@ public class BlockHelper {
                     int row = A.nz_rows[idx];
 
                     tmp_row.computeIfAbsent(col % block_size, key -> new LinkedList<>()).add(row + block_size * (col / block_size)); 
-                    tmp_col[col % block_size + 1] += 1;
+                    tmp_col[(col % block_size) + 1] += 1;
                 }
             }
 
@@ -114,6 +115,7 @@ public class BlockHelper {
         matrix1.col_idx = tmp_col;
 
         matrix1.nz_values = nz_values;
+        matrix1.nz_length = tmp_col[tmp_col.length - 1];
 
         return matrix1;
     }
@@ -145,6 +147,7 @@ public class BlockHelper {
             matrix1.col_idx = tmp_col;
 
             matrix1.nz_values = A.nz_values;
+            matrix1.nz_length = tmp_col[tmp_col.length - 1];
 
             return matrix1;
         } else {
@@ -182,6 +185,7 @@ public class BlockHelper {
             matrix1.col_idx = A.col_idx;
 
             matrix1.nz_values = A.nz_values;
+            matrix1.nz_length = A.col_idx[A.col_idx.length - 1];
             return matrix1;
         }
     }
@@ -202,8 +206,8 @@ public class BlockHelper {
                     for (int idx = colStart; idx < colEnd; idx++) {
                         int row = A.nz_rows[idx];
 
-                        tmp_row.computeIfAbsent(col, key -> new LinkedList<>()).add(row % block_size); 
-                        tmp_col[col + 1] += 1;
+                        tmp_row.computeIfAbsent(col % block_size, key -> new LinkedList<>()).add(row % block_size); 
+                        tmp_col[(col % block_size) + 1] += 1;
                     }
                 }
 
@@ -232,12 +236,13 @@ public class BlockHelper {
             matrix1.col_idx = tmp_col;
 
             matrix1.nz_values = nz_values;
+            matrix1.nz_length = tmp_col[tmp_col.length - 1];
 
             return matrix1;
         } else {
             int block_size = A.numCols;
 
-            int[] tmp_col = new int[A.numRows + 1];
+            int[] tmp_col = new int[A.numCols + 1];
             int[] new_nr = new int[A.nz_length];
             HashMap <Integer, LinkedList<Integer>> tmp_row = new HashMap<>();
             int k = 0;
@@ -249,8 +254,8 @@ public class BlockHelper {
                     for (int idx = colStart; idx < colEnd; idx++) {
                         int row = A.nz_rows[idx];
 
-                        tmp_row.computeIfAbsent(col % block_size, key -> new LinkedList<>()).add(row); 
-                        tmp_col[col % block_size + 1] += 1;
+                        tmp_row.computeIfAbsent(col % block_size, key -> new LinkedList<>()).add(row % block_size); 
+                        tmp_col[(col % block_size) + 1] += 1;
                     }
                 }
                 
@@ -279,51 +284,116 @@ public class BlockHelper {
             Arrays.fill(nz_values, 1.0);
 
             matrix1.nz_values = nz_values;
+            matrix1.nz_length = tmp_col[tmp_col.length - 1];
 
             return matrix1;
         }
     }
 
-    public static CellBlockMatrix reverseVectorBlockMatrix(AbstractMatrix tmp) {
-        CellBlockMatrix ans;
+    public static CellBlockMatrix reverseVectorBlockMatrix(AbstractMatrix A) {
+        if (A.matrix.numCols > A.matrix.numRows) {
+            int block_size = A.matrix.numRows;
 
-        if (tmp.matrix.numCols > tmp.matrix.numRows) {
-            int minimum = tmp.matrix.numRows;
-            ans = new CellBlockMatrix(new DMatrixSparseCSC(minimum, minimum));
+            int[] tmp_col = new int[A.matrix.numRows + 1];
+            int[] new_nr = new int[A.matrix.nz_length];
+            HashMap <Integer, LinkedList<Integer>> tmp_row = new HashMap<>();
+            int k = 0;
 
-            for (int col = 0; col < tmp.getNumCols(); col++) {
-                int colStart = tmp.matrix.col_idx[col];
-                int colEnd = tmp.matrix.col_idx[col + 1];
+            for (int col = 0; col < A.getNumCols(); col++) {
+                    int colStart = A.matrix.col_idx[col];
+                    int colEnd = A.matrix.col_idx[col + 1];
 
-                for (int idx = colStart; idx < colEnd; idx++) {
-                    int row = tmp.matrix.nz_rows[idx];
-                    double value = tmp.matrix.nz_values[idx];
+                    for (int idx = colStart; idx < colEnd; idx++) {
+                        int row = A.matrix.nz_rows[idx];
 
-                    if (value > 0) {
-                        ans.set(row, col % minimum, 1);
+                        tmp_row.computeIfAbsent(col % block_size, key -> new LinkedList<>()).add(row % block_size); 
+
+                        tmp_col[(col % block_size) + 1] += 1;
                     }
                 }
+
+            Set<Integer> keys = tmp_row.keySet();
+
+            Set<Integer> sortedKeys = new TreeSet<>(keys);
+                    
+
+            for (int q : sortedKeys) {
+                LinkedList<Integer> list = tmp_row.get(q);
+                for (int i = 0; i < list.size(); i++) {
+                    new_nr[k++] = list.get(i);
+                }
             }
+            
+
+            for (int i = 1; i < tmp_col.length; i++) {
+                System.out.println(tmp_col[i]);
+                tmp_col[i] += tmp_col[i - 1];
+            }
+
+            double[] nz_values = new double[tmp_col[tmp_col.length - 1]];
+            Arrays.fill(nz_values, 1.0);
+
+
+            CellBlockMatrix matrix1 = new CellBlockMatrix(new DMatrixSparseCSC(block_size, block_size));
+            matrix1.matrix.nz_rows = new_nr;
+            matrix1.matrix.col_idx = tmp_col;
+
+            matrix1.matrix.nz_values = nz_values;
+
+            matrix1.matrix.nz_length = tmp_col[tmp_col.length - 1];
+
+            return matrix1;
         } else {
-            int minimum = tmp.matrix.numCols;
-            ans = new CellBlockMatrix(new DMatrixSparseCSC(minimum, minimum));
+            int block_size = A.matrix.numCols;
 
-            for (int col = 0; col < tmp.getNumCols(); col++) {
-                int colStart = tmp.matrix.col_idx[col];
-                int colEnd = tmp.matrix.col_idx[col + 1];
+            int[] tmp_col = new int[A.matrix.numCols + 1];
+            int[] new_nr = new int[A.matrix.nz_length];
+            HashMap <Integer, LinkedList<Integer>> tmp_row = new HashMap<>();
+            int k = 0;
 
-                for (int idx = colStart; idx < colEnd; idx++) {
-                    int row = tmp.matrix.nz_rows[idx];
-                    double value = tmp.matrix.nz_values[idx];
+            for (int col = 0; col < A.getNumCols(); col++) {
+                    int colStart = A.matrix.col_idx[col];
+                    int colEnd = A.matrix.col_idx[col + 1];
 
-                    if (value > 0) {
-                        ans.set(row % minimum, col, 1);
+                    for (int idx = colStart; idx < colEnd; idx++) {
+                        int row = A.matrix.nz_rows[idx];
+
+                        tmp_row.computeIfAbsent(col % block_size, key -> new LinkedList<>()).add(row % block_size); 
+
+                        tmp_col[(col % block_size) + 1] += 1;
+                        
                     }
+                }
+                
+
+            Set<Integer> keys = tmp_row.keySet();
+
+            Set<Integer> sortedKeys = new TreeSet<>(keys);
+                    
+
+            for (int q : sortedKeys) {
+                LinkedList<Integer> list = tmp_row.get(q);
+                for (int i = 0; i < list.size(); i++) {
+                    new_nr[k++] = list.get(i);
                 }
             }
 
-        }
-        return ans;
+            for (int i = 1; i < tmp_col.length; i++) {
+                tmp_col[i] += tmp_col[i - 1];
+            }
 
+            CellBlockMatrix matrix1 = new CellBlockMatrix(new DMatrixSparseCSC(block_size, block_size));
+            matrix1.matrix.nz_rows = new_nr;
+            matrix1.matrix.col_idx = tmp_col;
+
+            double[] nz_values = new double[tmp_col[tmp_col.length - 1]];
+            Arrays.fill(nz_values, 1.0);
+
+            matrix1.matrix.nz_values = nz_values;
+
+            matrix1.matrix.nz_length = tmp_col[tmp_col.length - 1];
+
+            return matrix1;
+        }
     }
 }
