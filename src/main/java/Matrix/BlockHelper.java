@@ -1,98 +1,189 @@
 package Matrix;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Set;
+import java.util.TreeSet;
+
 import org.ejml.data.DMatrixSparseCSC;
 
 public class BlockHelper {
 
-    public static DMatrixSparseCSC revolutionToTheHorizon(DMatrixSparseCSC tmp) {
-        if (isHorizon(tmp)) {
-            return tmp;
+    public static DMatrixSparseCSC revolutionToTheHorizon(DMatrixSparseCSC A) {
+        if (isHorizon(A)) {
+            return A;
         }
+        int block_size = A.numCols;
 
-        DMatrixSparseCSC ans = new DMatrixSparseCSC(tmp.numCols, tmp.numRows);
+        int[] tmp_col = new int[A.numRows + 1];
+        int[] new_nr = new int[A.nz_length];
+        double[] nz_values = new double[A.nz_length];
+        Arrays.fill(nz_values, 1.0);
+        HashMap <Integer, LinkedList<Integer>> tmp_row = new HashMap<>();
+        int k = 0;
 
-        for (int col = 0; col < tmp.getNumCols(); col++) {
-            int colStart = tmp.col_idx[col];
-            int colEnd = tmp.col_idx[col + 1];
+        for (int col = 0; col < A.getNumCols(); col++) {
+                int colStart = A.col_idx[col];
+                int colEnd = A.col_idx[col + 1];
 
-            for (int idx = colStart; idx < colEnd; idx++) {
-                int row = tmp.nz_rows[idx];
-                double value = tmp.nz_values[idx];
+                for (int idx = colStart; idx < colEnd; idx++) {
+                    int row = A.nz_rows[idx];
 
-                if (value > 0) {
-                    ans.set(row % tmp.numCols, col + (tmp.numRows / (tmp.numRows / tmp.numCols)) * (row / tmp.numCols), 1);
+                    tmp_row.computeIfAbsent(col + block_size * (row / block_size), key -> new LinkedList<>()).add(row % block_size); 
+                    tmp_col[col + 1 + block_size * (row / block_size)] += 1;
                 }
+            }
+            
+
+        Set<Integer> keys = tmp_row.keySet();
+
+        Set<Integer> sortedKeys = new TreeSet<>(keys);
+                
+
+        for (int q : sortedKeys) {
+            LinkedList<Integer> list = tmp_row.get(q);
+            for (int i = 0; i < list.size(); i++) {
+                new_nr[k++] = list.get(i);
             }
         }
 
-        return ans;
+        for (int i = 1; i < tmp_col.length; i++) {
+            tmp_col[i] += tmp_col[i - 1];
+        }
+
+        DMatrixSparseCSC matrix1 = new DMatrixSparseCSC(A.numCols, A.numRows);
+        matrix1.nz_rows = new_nr;
+        matrix1.col_idx = tmp_col;
+
+        matrix1.nz_values = nz_values;
+
+        return matrix1;
+
     }
 
     public static boolean isHorizon(DMatrixSparseCSC a) {
         return a.numCols > a.numRows;
     }
 
-    public static DMatrixSparseCSC revolutionToTheVertical(DMatrixSparseCSC tmp) {
-        if (!isHorizon(tmp)) {
-            return tmp;
+    public static DMatrixSparseCSC revolutionToTheVertical(DMatrixSparseCSC A) {
+        if (!isHorizon(A)) {
+            return A;
         }
+        
+        int block_size = A.numRows;
 
-        DMatrixSparseCSC ans = new DMatrixSparseCSC(tmp.numCols, tmp.numRows);
+        int[] tmp_col = new int[A.numRows + 1];
+        int[] new_nr = new int[A.nz_length];
+        double[] nz_values = new double[A.nz_length];
+        Arrays.fill(nz_values, 1.0);
+        HashMap <Integer, LinkedList<Integer>> tmp_row = new HashMap<>();
+        int k = 0;
 
-        for (int col = 0; col < tmp.getNumCols(); col++) {
-            int colStart = tmp.col_idx[col];
-            int colEnd = tmp.col_idx[col + 1];
+        for (int col = 0; col < A.getNumCols(); col++) {
+                int colStart = A.col_idx[col];
+                int colEnd = A.col_idx[col + 1];
 
-            for (int idx = colStart; idx < colEnd; idx++) {
-                int row = tmp.nz_rows[idx];
-                double value = tmp.nz_values[idx];
+                for (int idx = colStart; idx < colEnd; idx++) {
+                    int row = A.nz_rows[idx];
 
-                if (value > 0) {
-                    ans.set(row + (tmp.numCols / (tmp.numCols / tmp.numRows)) * (col / tmp.numRows), col % tmp.numRows, 1);
+                    tmp_row.computeIfAbsent(col % block_size, key -> new LinkedList<>()).add(row + block_size * (col / block_size)); 
+                    tmp_col[col % block_size + 1] += 1;
                 }
             }
-        }
 
-        return ans;
+        Set<Integer> keys = tmp_row.keySet();
+
+        Set<Integer> sortedKeys = new TreeSet<>(keys);
+                
+
+        for (int q : sortedKeys) {
+            LinkedList<Integer> list = tmp_row.get(q);
+            for (int i = 0; i < list.size(); i++) {
+                new_nr[k++] = list.get(i);
+            }
+        }
+        
+
+        for (int i = 1; i < tmp_col.length; i++) {
+            tmp_col[i] += tmp_col[i - 1];
+        } 
+
+        DMatrixSparseCSC matrix1 = new DMatrixSparseCSC(A.numCols, A.numRows);
+        matrix1.nz_rows = new_nr;
+        matrix1.col_idx = tmp_col;
+
+        matrix1.nz_values = nz_values;
+
+        return matrix1;
     }
 
-    public static DMatrixSparseCSC toDiagMatrix(DMatrixSparseCSC tmp) {
-        int maxim = Math.max(tmp.numCols, tmp.numRows);
-        int minim = Math.min(tmp.numCols, tmp.numRows);
+    public static DMatrixSparseCSC toDiagMatrix(DMatrixSparseCSC A) {
+        if (A.numRows > A.numCols) {
+            int block_size = A.numCols;
 
-        DMatrixSparseCSC ans = new DMatrixSparseCSC(maxim, maxim);
+            int[] tmp_col = new int[A.numRows + 1];
 
-        if (tmp.numCols < tmp.numRows) {
-            for (int col = 0; col < tmp.getNumCols(); col++) {
-                int colStart = tmp.col_idx[col];
-                int colEnd = tmp.col_idx[col + 1];
+            for (int col = 0; col < A.getNumCols(); col++) {
+                    int colStart = A.col_idx[col];
+                    int colEnd = A.col_idx[col + 1];
 
-                for (int idx = colStart; idx < colEnd; idx++) {
-                    int row = tmp.nz_rows[idx];
-                    double value = tmp.nz_values[idx];
+                    for (int idx = colStart; idx < colEnd; idx++) {
+                        int row = A.nz_rows[idx];
 
-                    if (value > 0) {
-                        ans.set(row, col + (row / minim * minim), 1);
+                        tmp_col[col + 1 + block_size * (row / block_size)] += 1;
                     }
                 }
-            }
+            
+
+            for (int i = 1; i < tmp_col.length; i++) {
+                tmp_col[i] += tmp_col[i - 1];
+            } 
+
+            DMatrixSparseCSC matrix1 = new DMatrixSparseCSC(A.numRows, A.numRows);
+            matrix1.nz_rows = A.nz_rows;
+            matrix1.col_idx = tmp_col;
+
+            matrix1.nz_values = A.nz_values;
+
+            return matrix1;
         } else {
-            for (int col = 0; col < tmp.getNumCols(); col++) {
-                int colStart = tmp.col_idx[col];
-                int colEnd = tmp.col_idx[col + 1];
+            int block_size = A.numRows;
 
-                for (int idx = colStart; idx < colEnd; idx++) {
-                    int row = tmp.nz_rows[idx];
-                    double value = tmp.nz_values[idx];
+            int[] new_nr = new int[A.nz_length];
+            HashMap <Integer, LinkedList<Integer>> tmp_row = new HashMap<>();
+            int k = 0;
 
-                    if (value > 0) {
-                        ans.set(row + (col / minim * minim), col, 1);
+            for (int col = 0; col < A.getNumCols(); col++) {
+                    int colStart = A.col_idx[col];
+                    int colEnd = A.col_idx[col + 1];
+
+                    for (int idx = colStart; idx < colEnd; idx++) {
+                        int row = A.nz_rows[idx];
+
+                        tmp_row.computeIfAbsent(col, key -> new LinkedList<>()).add(row + block_size * (col / block_size)); 
                     }
                 }
-            }
-        }
+            
+            Set<Integer> keys = tmp_row.keySet();
 
-        return ans;
+            Set<Integer> sortedKeys = new TreeSet<>(keys);
+                
+
+            for (int q : sortedKeys) {
+                LinkedList<Integer> list = tmp_row.get(q);
+                for (int i = 0; i < list.size(); i++) {
+                    new_nr[k++] = list.get(i);
+                }
+            }
+
+            DMatrixSparseCSC matrix1 = new DMatrixSparseCSC(A.numCols, A.numCols);
+            matrix1.nz_rows = new_nr;
+            matrix1.col_idx = A.col_idx;
+
+            matrix1.nz_values = A.nz_values;
+            return matrix1;
+        }
     }
 
     public static DMatrixSparseCSC reverse(DMatrixSparseCSC tmp) {
