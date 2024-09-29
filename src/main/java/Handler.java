@@ -10,9 +10,11 @@ import java.util.List;
 import java.util.Set;
 
 import org.ejml.data.DMatrixSparseCSC;
+import org.ejml.sparse.csc.CommonOps_DSCC;
 
 import Matrix.AbstractMatrix;
 import Matrix.BaseMatrix;
+import Matrix.BlockHelper;
 import Matrix.CellBlockMatrix;
 import Matrix.FastMatrixCell;
 import Matrix.FastMatrixVector;
@@ -185,54 +187,18 @@ public class Handler {
             switch (endsWithI ? (endsWithI2 ? 1 : 2) : (endsWithI2 ? 3 : 0)) {
                 case 1:
                     if (labels.get(a.getLHS()).getNumCols() > labels.get(a.getRHS()).getNumCols()) {
-                        for (int col = 0; col < labels.get(a.getLHS()).getNumCols(); col++) {
-                            int colStart = labels.get(a.getLHS()).col_idx(col);
-                            int colEnd = labels.get(a.getLHS()).col_idx(col + 1);
-
-                            for (int idx = colStart; idx < colEnd; idx++) {
-                                int row = labels.get(a.getLHS()).nz_rows(idx);
-
-                                labels.get(a.getRHS()).set(row + (labels.get(a.getLHS()).getNumCols() / (labels.get(a.getLHS()).getNumCols() / labels.get(a.getLHS()).getNumRows())) * (col / labels.get(a.getLHS()).getNumRows()), col % labels.get(a.getLHS()).getNumRows(), 1);
-                            }
-                        }
+                        CommonOps_DSCC.add(1.0, labels.get(a.getRHS()).copy().matrix, 1.0, BlockHelper.revolutionToTheVertical(labels.get(a.getLHS()).matrix), labels.get(a.getRHS()).matrix, null, null);
                     } else {
                         if (labels.get(a.getLHS()).getNumCols() < labels.get(a.getRHS()).getNumCols()) {
-                            for (int col = 0; col < labels.get(a.getLHS()).getNumCols(); col++) {
-                                int colStart = labels.get(a.getLHS()).col_idx(col);
-                                int colEnd = labels.get(a.getLHS()).col_idx(col + 1);
-
-                                for (int idx = colStart; idx < colEnd; idx++) {
-                                    int row = labels.get(a.getLHS()).nz_rows(idx);
-
-                                    labels.get(a.getRHS()).set(row % labels.get(a.getLHS()).getNumCols(), col + (labels.get(a.getLHS()).getNumRows() / (labels.get(a.getLHS()).getNumRows() / labels.get(a.getLHS()).getNumCols())) * (row / labels.get(a.getLHS()).getNumCols()), 1);
-                                }
-                            }
+                            CommonOps_DSCC.add(1.0, labels.get(a.getRHS()).copy().matrix, 1.0, BlockHelper.revolutionToTheHorizon(labels.get(a.getLHS()).matrix), labels.get(a.getRHS()).matrix, null, null);
                         } else {
-                            for (int col = 0; col < labels.get(a.getLHS()).getNumCols(); col++) {
-                                int colStart = labels.get(a.getLHS()).col_idx(col);
-                                int colEnd = labels.get(a.getLHS()).col_idx(col + 1);
-
-                                for (int idx = colStart; idx < colEnd; idx++) {
-                                    int row = labels.get(a.getLHS()).nz_rows(idx);
-
-                                    labels.get(a.getRHS()).set(row, col, 1);
-                                }
-                            }
+                            CommonOps_DSCC.add(1.0, labels.get(a.getRHS()).copy().matrix, 1.0, labels.get(a.getLHS()).matrix, labels.get(a.getRHS()).matrix, null, null);
                         }
                     }
 
                     break;
                 case 0:
-                    for (int col = 0; col < labels.get(a.getLHS()).getNumCols(); col++) {
-                        int colStart = labels.get(a.getLHS()).col_idx(col);
-                        int colEnd = labels.get(a.getLHS()).col_idx(col + 1);
-
-                        for (int idx = colStart; idx < colEnd; idx++) {
-                            int row = labels.get(a.getLHS()).nz_rows(idx);
-
-                            labels.get(a.getRHS()).set(row, col, 1);
-                        }
-                    }
+                    CommonOps_DSCC.add(1.0, labels.get(a.getRHS()).copy().matrix, 1.0, labels.get(a.getLHS()).matrix, labels.get(a.getRHS()).matrix, null, null);
                     break;
                 case 2:
                     int minimum = Math.min(labels.get(a.getLHS()).getNumCols(), labels.get(a.getLHS()).getNumRows());
