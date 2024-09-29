@@ -10,8 +10,6 @@ import Matrix.AbstractMatrix;
 import Matrix.AsistantMatrix;
 
 public class Main {
-
-    // enter vertices starting from 0 and do not skip values
     public static void main(String[] args) {
         if (args.length != 4) {
             System.err.println("Invalid argument format. You need to specify two files: file path, file grammar, optimizations number.");
@@ -63,6 +61,11 @@ public class Main {
         AsistantMatrix storage = new AsistantMatrix(optimizations.number, Handler.n, Handler.block_size);
 
         boolean changed;
+        boolean firstStart = true;
+        boolean upgrade = false;
+        String productionBefore = "start";
+        int s = 0;
+        System.out.println("START");
         do {
             changed = false;
             for (Grammar.Production a : grammar.getProductions()) {
@@ -71,6 +74,8 @@ public class Main {
                     continue;
                 }
 
+                System.out.println(++s);
+
                 String key1 = a.getLHSL();
                 String key2 = a.getLHSR();
                 String production = a.getRHS();
@@ -78,20 +83,40 @@ public class Main {
                 if (optimizations.isOpt1()) {
                     old.get(key1).multiply(labels.get(key2), storage, 0, production);
 
-                    if (!optimizations.isOpt3() && !optimizations.isOpt5()) {
-                        for (String key : labels.keySet()) {
+                    if (firstStart) {
+                        firstStart = false;
+                        if (!optimizations.isOpt3() && !optimizations.isOpt5()) {
+                            for (String key : labels.keySet()) {
 
-                            labels.get(key).add(old.get(key), storage, 1);
+                                labels.get(key).add(old.get(key), storage, 1);
 
-                            if (storage.getMatrix(1).nz_length() != old.get(key).nz_length()) {
-                                changed = true;
+                                if (storage.getMatrix(1).nz_length() != old.get(key).nz_length()) {
+                                    changed = true;
+                                }
+
+                                old.put(key, storage.getMatrix(1).copy());
                             }
-
-                            old.put(key, storage.getMatrix(1).copy());
+                        } else {
+                            for (String key : labels.keySet()) {
+                                old.get(key).add(labels.get(key), storage, 2);
+                            }
                         }
                     } else {
-                        for (String key : labels.keySet()) {
-                            old.get(key).add(labels.get(key), storage, 2);
+                        if (!optimizations.isOpt3() && !optimizations.isOpt5()) {
+                            for (String key : labels.keySet()) {
+
+                                labels.get(key).add(old.get(key), storage, 1);
+
+                                if (storage.getMatrix(1).nz_length() != old.get(key).nz_length()) {
+                                    changed = true;
+                                }
+
+                                old.put(key, storage.getMatrix(1).copy());
+                            }
+                        } else {
+                            if (upgrade) {
+                                old.get(productionBefore).add(labels.get(productionBefore), storage, 2);
+                            }
                         }
                     }
 
@@ -107,7 +132,12 @@ public class Main {
 
                     if ((optimizations.isOpt3() && tmp.nz_length() != 0) || (optimizations.isOpt5() && tmp.nz_length() != 0)) {
                         changed = true;
+                        upgrade = true;
+                    } else {
+                        upgrade = false;
                     }
+
+                    productionBefore = production;
 
                     labels.put(production, tmp.copy());
 
