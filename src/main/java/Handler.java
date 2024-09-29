@@ -44,7 +44,7 @@ public class Handler {
             AbstractMatrix matrix = labels.get(label);
             synchronized (matrix) {
                 if (edge.hasN()) {
-                    if (grammar.isLhsR(label) && ((to + n * edge.getN()) < (matrix.getNumCols()))) {
+                    if (((to + n * edge.getN()) < (matrix.getNumCols()))) {
                         matrix.set(from, to + n * edge.getN(), 1);
                     } else {
                         matrix.set(from + n * edge.getN(), to, 1);
@@ -61,7 +61,7 @@ public class Handler {
                 synchronized (rhsMatrix) {
                     endsWithI = rhs.endsWith("_i");
                     if (edge.hasN() && endsWithI) {
-                        if (grammar.isLhsR(label) && ((to + n * edge.getN()) < (rhsMatrix.getNumCols()))) {
+                        if (((to + n * edge.getN()) < (rhsMatrix.getNumCols()))) {
                             rhsMatrix.set(from, to + n * edge.getN(), 1);
                         } else {
                             rhsMatrix.set(from + n * edge.getN(), to, 1);
@@ -83,7 +83,7 @@ public class Handler {
             if (optimizations.isOpt5()) {
                 endsWithI = key.endsWith("_i");
                 if (endsWithI) {
-                    if (grammar.isLhsR(key)) {
+                    if (!grammar.isVertical(key)) {
                         matrix = !edges.equals(Arrays.asList())
                                 ? new VectorBlockMatrix(new DMatrixSparseCSC(n, n * block_size))
                                 : new FastMatrixVector(new DMatrixSparseCSC(n, n * block_size));
@@ -100,7 +100,7 @@ public class Handler {
             } else if (optimizations.isOpt4()) {
                 endsWithI = key.endsWith("_i");
                 if (endsWithI) {
-                    if (grammar.isLhsR(key)) {
+                    if (!grammar.isVertical(key)) {
                         matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n, n * block_size));
                     } else {
                         matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n * block_size, n));

@@ -9,6 +9,7 @@ public class Grammar {
     private Set<String> lhsL;
     private Set<String> lhsR;
     private Set<String> epsilonValues;
+    private Set<String> vertical;
         
     public Grammar() {
         this.letters = new HashSet<>();
@@ -16,6 +17,11 @@ public class Grammar {
         this.lhsL = new HashSet<>();
         this.lhsR = new HashSet<>();
         this.epsilonValues = new HashSet<>();
+        this.vertical = new HashSet<>();
+    }
+
+    public boolean isVertical(String letter) {
+        return vertical.contains(letter);
     }
 
     public void addProductionRules(String rules) {
@@ -28,6 +34,13 @@ public class Grammar {
             addLetters(parts[0]);
             addLetters(parts[1]);
             addLetters(parts[2]);
+            if (parts[1].endsWith("_i") && parts[2].endsWith("_i")) {
+                vertical.add(parts[2]);
+            } else {
+                if (parts[1].endsWith("_i") && !parts[2].endsWith("_i")) {
+                    vertical.add(parts[1]);
+                }
+            }
         } else { 
             if (parts.length == 2) {
                 lhsL.add(parts[1]);
@@ -84,6 +97,7 @@ public class Grammar {
     }
 
     public boolean isLhsR(String lhsR) {
+        
         return lhsR.contains(lhsR);
     }
 
