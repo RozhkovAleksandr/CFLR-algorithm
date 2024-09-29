@@ -99,9 +99,11 @@ public class Main {
 
                     storage.getMatrix(0).add(storage.getMatrix(1), storage, 1);
 
-                    old.get(production).subtraction(storage.getMatrix(1), storage, 2);
-
                     tmp = storage.getMatrix(1).removeNonPositiveElements();
+
+                    old.get(production).subtraction(tmp, storage, 2);
+
+                    tmp = tmp.copy().removeNonPositiveElements();
 
                     if ((optimizations.isOpt3() && tmp.nz_length() != 0) || (optimizations.isOpt5() && tmp.nz_length() != 0)) {
                         changed = true;
@@ -129,7 +131,7 @@ public class Main {
             return storage.getMatrix(1);
         }
 
-        if (optimizations.isOpt2() || optimizations.isOpt4()) {
+        if (optimizations.isOpt2() || optimizations.isOpt4() || optimizations.isOpt1()) {
             return old.get(ultimate);
         }
 

@@ -196,11 +196,12 @@ public class FastMatrixVector extends AbstractMatrix {
     }
 
     private void multHelper(DMatrixSparseCSC m, DMatrixSparseCSC other, DMatrixSparseCSC result) {
-        if (m.nz_length >= other.nz_length) {
-            multColumnByColumn(m, other, result);
-        } else {
-            multRowByRow(m, other, result);
-        }
+        CommonOps_DSCC.mult(m, other, result);
+        // if (m.nz_length >= other.nz_length) {
+        //     multColumnByColumn(m, other, result);
+        // } else {
+        //     multRowByRow(m, other, result);
+        // }
     }
 
     private static void multRowByRow(DMatrixSparseCSC A, DMatrixSparseCSC B, DMatrixSparseCSC result) {

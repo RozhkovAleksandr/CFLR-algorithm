@@ -1,5 +1,7 @@
 package Matrix;
 
+import java.util.Arrays;
+
 import org.ejml.data.DMatrixSparseCSC;
 import org.ejml.sparse.csc.CommonOps_DSCC;
 
@@ -52,22 +54,20 @@ public class CellBlockMatrix extends AbstractMatrix {
 
     @Override
     public AbstractMatrix removeNonPositiveElements() {
-        AbstractMatrix positiveMatrix = new CellBlockMatrix(new DMatrixSparseCSC(matrix.numRows, matrix.numCols));
-        DMatrixSparseCSC tmp = this.matrix.copy();
+        AbstractMatrix positiveMatrix = new CellBlockMatrix(this.matrix.copy());
 
-        for (int col = 0; col < tmp.getNumCols(); col++) {
-            int colStart = tmp.col_idx[col];
-            int colEnd = tmp.col_idx[col + 1];
-
-            for (int idx = colStart; idx < colEnd; idx++) {
-                int row = tmp.nz_rows[idx];
-                double value = tmp.nz_values[idx];
-
-                if (value > 0) {
-                    positiveMatrix.set(row, col, 1);
-                }
+        for (int i = 0; i < positiveMatrix.matrix.nz_length; i++) {
+            if (positiveMatrix.matrix.nz_values[i] <= 0) {
+                positiveMatrix.matrix.nz_values[i] = 0;
             }
         }
+
+        CommonOps_DSCC.removeZeros(positiveMatrix.matrix, 0);
+
+        double[] new_values = new double[positiveMatrix.matrix.nz_length];
+        Arrays.fill(new_values, 1.0);
+
+        positiveMatrix.matrix.nz_values = new_values;
 
         return positiveMatrix;
     }
