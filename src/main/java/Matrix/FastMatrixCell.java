@@ -115,18 +115,8 @@ public class FastMatrixCell extends AbstractMatrix {
 
         for (DMatrixSparseCSC m : matrices) {
 
-            for (int col = 0; col < m.numCols; col++) {
-                int colStart = m.col_idx[col];
-                int colEnd = m.col_idx[col + 1];
-
-                for (int idx = colStart; idx < colEnd; idx++) {
-                    int row = m.nz_rows[idx];
-
-                    if (m.get(row, col) > 0) {
-                        other.matrix.remove(row, col);
-                    }
-                }
-            }
+            CommonOps_DSCC.changeSign(m, asistant.getMatrix("cell", n).matrix);
+            CommonOps_DSCC.add(1.0, other.matrix.copy(), 1.0, asistant.getMatrix(n).matrix, other.matrix, null, null);
         }
     }
 

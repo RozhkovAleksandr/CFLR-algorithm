@@ -127,52 +127,28 @@ public class FastMatrixVector extends AbstractMatrix {
             if (matrix.numCols < matrix.numRows) {
                 for (DMatrixSparseCSC m : matrices) {
 
-                    for (int col = 0; col < m.numCols; col++) {
-                        int colStart = m.col_idx[col];
-                        int colEnd = m.col_idx[col + 1];
-
-                        for (int idx = colStart; idx < colEnd; idx++) {
-                            int row = m.nz_rows[idx];
-
-                            if (m.get(row, col) > 0) {
-                                other.matrix.remove(row % matrix.numCols, col + (matrix.numRows / (matrix.numRows / matrix.numCols)) * (row / matrix.numCols));
-                            }
-                        }
-                    }
+                    CommonOps_DSCC.changeSign(m, asistant.getMatrix("vertical", n).matrix);
+                    CommonOps_DSCC.add(1.0, BlockHelper.revolutionToTheVertical(other.matrix), 1.0, asistant.getMatrix(n).matrix, other.matrix, null, null);
                 }
             } else {
                 for (DMatrixSparseCSC m : matrices) {
 
-                    for (int col = 0; col < m.numCols; col++) {
-                        int colStart = m.col_idx[col];
-                        int colEnd = m.col_idx[col + 1];
-
-                        for (int idx = colStart; idx < colEnd; idx++) {
-                            int row = m.nz_rows[idx];
-
-                            if (m.get(row, col) > 0) {
-                                other.matrix.remove(row + (matrix.numCols / (matrix.numCols / matrix.numRows)) * (col / matrix.numRows), col % matrix.numRows);
-                            }
-                        }
-                    }
+                    CommonOps_DSCC.changeSign(m, asistant.getMatrix("horizon", n).matrix);
+                    CommonOps_DSCC.add(1.0, BlockHelper.revolutionToTheHorizon(other.matrix), 1.0, asistant.getMatrix(n).matrix, other.matrix, null, null);
                 }
             }
 
         } else {
+            if (matrix.numCols < matrix.numRows) {
+                for (DMatrixSparseCSC m : matrices) {
+                    CommonOps_DSCC.changeSign(m, asistant.getMatrix("vertical", n).matrix);
+                    CommonOps_DSCC.add(1.0, other.matrix.copy(), 1.0, asistant.getMatrix(n).matrix, other.matrix, null, null);
+                }
+            } else {
+                for (DMatrixSparseCSC m : matrices) {
 
-            for (DMatrixSparseCSC m : matrices) {
-
-                for (int col = 0; col < m.numCols; col++) {
-                    int colStart = m.col_idx[col];
-                    int colEnd = m.col_idx[col + 1];
-
-                    for (int idx = colStart; idx < colEnd; idx++) {
-                        int row = m.nz_rows[idx];
-
-                        if (m.get(row, col) > 0) {
-                            other.matrix.remove(row, col);
-                        }
-                    }
+                    CommonOps_DSCC.changeSign(m, asistant.getMatrix("horizon", n).matrix);
+                    CommonOps_DSCC.add(1.0, other.matrix.copy(), 1.0, asistant.getMatrix(n).matrix, other.matrix, null, null);
                 }
             }
         }
