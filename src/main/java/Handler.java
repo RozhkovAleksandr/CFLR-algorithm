@@ -1,3 +1,4 @@
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -19,16 +20,63 @@ import Matrix.FormatMatrix;
 import Matrix.LazyMatrix;
 import Matrix.VectorBlockMatrix;
 
-
-
 public class Handler {
 
     static int block_size = 1;
     static int n = 0;
-    
+
     public static HashMap<String, AbstractMatrix> makeMatrix(Grammar grammar, List<Edge> edges, Optimizations optimizations) {
-        HashMap<String, AbstractMatrix> labels = new HashMap<>();
+        HashMap<String, AbstractMatrix> labels = createMatrixForKey(grammar, edges, optimizations);
+        
+        edges.parallelStream().forEach(edge -> processEdge(edge, labels, grammar));
+
+        return labels;
+    }
+
+    private static void processEdge(Edge edge, HashMap<String, AbstractMatrix> labels, Grammar grammar) {
+       boolean endsWithI;
+
+       int from = edge.getStart();
+       int to = edge.getFinish();
+       String label = edge.getLabel();
+
+       if (from <= n && to <= n) {
+           AbstractMatrix matrix = labels.get(label);
+           synchronized (matrix) {
+               if (edge.hasN()) {
+                   if (grammar.isLhsR(label) && ((to + n * edge.getN()) < (matrix.getNumCols()))) {
+                       matrix.set(from, to + n * edge.getN(), 1);
+                   } else {
+                       matrix.set(from + n * edge.getN(), to, 1);
+                   }
+               } else {
+                   matrix.set(from, to, 1);
+               }
+           }
+
+           String rhs = grammar.getRHSByLHS(label);
+
+           if (rhs != null) {
+               AbstractMatrix rhsMatrix = labels.get(rhs);
+               synchronized (rhsMatrix) {
+                   endsWithI = rhs.endsWith("_i");
+                   if (edge.hasN() && endsWithI) {
+                       if (grammar.isLhsR(label) && ((to + n * edge.getN()) < (rhsMatrix.getNumCols()))) {
+                           rhsMatrix.set(from, to + n * edge.getN(), 1);
+                       } else {
+                           rhsMatrix.set(from + n * edge.getN(), to, 1);
+                       }
+                   } else {
+                       rhsMatrix.set(from, to, 1);
+                   }
+               }
+           }
+        }
+    }
+
+    private static HashMap<String, AbstractMatrix> createMatrixForKey(Grammar grammar, List<Edge> edges, Optimizations optimizations) {
         boolean endsWithI;
+        HashMap<String, AbstractMatrix> labels = new HashMap<>();
         for (String key : grammar.getLetters()) {
             AbstractMatrix matrix;
 
@@ -36,88 +84,41 @@ public class Handler {
                 endsWithI = key.endsWith("_i");
                 if (endsWithI) {
                     if (grammar.isLhsR(key)) {
-                        if (!edges.equals(Arrays.asList())) {
-                            matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n, n * block_size));
-                        } else {
-                            matrix = new FastMatrixVector(new DMatrixSparseCSC(n, n * block_size));
-                        }
+                        matrix = !edges.equals(Arrays.asList())
+                                ? new VectorBlockMatrix(new DMatrixSparseCSC(n, n * block_size))
+                                : new FastMatrixVector(new DMatrixSparseCSC(n, n * block_size));
                     } else {
-                        if (!edges.equals(Arrays.asList())) {
-                            matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n * block_size, n));
-                        } else {
-                            matrix = new FastMatrixVector(new DMatrixSparseCSC(n * block_size, n));
-                        }
+                        matrix = !edges.equals(Arrays.asList())
+                                ? new VectorBlockMatrix(new DMatrixSparseCSC(n * block_size, n))
+                                : new FastMatrixVector(new DMatrixSparseCSC(n * block_size, n));
                     }
                 } else {
-                    if (!edges.equals(Arrays.asList())) {
-                        matrix = new CellBlockMatrix(new DMatrixSparseCSC(n, n));
-                    } else {
-                        matrix = new FastMatrixCell(new DMatrixSparseCSC(n, n));
-                    }
+                    matrix = !edges.equals(Arrays.asList())
+                            ? new CellBlockMatrix(new DMatrixSparseCSC(n, n))
+                            : new FastMatrixCell(new DMatrixSparseCSC(n, n));
                 }
+            } else if (optimizations.isOpt4()) {
+                endsWithI = key.endsWith("_i");
+                if (endsWithI) {
+                    if (grammar.isLhsR(key)) {
+                        matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n, n * block_size));
+                    } else {
+                        matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n * block_size, n));
+                    }
+                } else {
+                    matrix = new CellBlockMatrix(new DMatrixSparseCSC(n, n));
+                }
+            } else if (optimizations.isOpt3()) {
+                matrix = !edges.equals(Arrays.asList())
+                        ? new BaseMatrix(new DMatrixSparseCSC(n, n))
+                        : new LazyMatrix(new DMatrixSparseCSC(n, n));
+            } else if (optimizations.isOpt2()) {
+                matrix = new FormatMatrix(new DMatrixSparseCSC(n, n));
             } else {
-                if (optimizations.isOpt4()) {
-                    endsWithI = key.endsWith("_i");
-                    if (endsWithI) {
-                        if (grammar.isLhsR(key)) {
-                            matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n, n * block_size));
-                        } else {
-                            matrix = new VectorBlockMatrix(new DMatrixSparseCSC(n * block_size, n));
-                        }
-                    } else {
-                        matrix = new CellBlockMatrix(new DMatrixSparseCSC(n, n));
-                    }
-                } else {
-                    if (optimizations.isOpt3()) {
-                        if (!edges.equals(Arrays.asList())) {
-                            matrix = new BaseMatrix(new DMatrixSparseCSC(n, n));
-                        } else {
-                            matrix = new LazyMatrix(new DMatrixSparseCSC(n, n));
-                        }
-                    } else {
-                        if (optimizations.isOpt2()) {
-                            matrix = new FormatMatrix(new DMatrixSparseCSC(n, n));
-                        } else {
-                            matrix = new BaseMatrix(new DMatrixSparseCSC(n, n));
-                        }
-                    }
-                }
+                matrix = new BaseMatrix(new DMatrixSparseCSC(n, n));
             }
 
             labels.put(key, matrix);
-        }
-
-        for (Edge edge : edges) {
-            int from = edge.getStart();
-            int to = edge.getFinish();
-            String label = edge.getLabel();
-
-            if (from <= n && to <= n) {
-                if (edge.hasN()) {
-                    if (grammar.isLhsR(label)) {
-                        labels.get(label).set(from, to + n * edge.getN(), 1);
-                    } else {
-                        labels.get(label).set(from + n * edge.getN(), to, 1);
-                    }
-                } else {
-                    labels.get(label).set(from, to, 1);
-                }
-
-                String rhs = grammar.getRHSByLHS(label);
-
-                if (rhs != null) {
-                    endsWithI = rhs.endsWith("_i");
-                    if (edge.hasN() && endsWithI) {
-                        if (grammar.isLhsR(label)) {
-                            labels.get(rhs).set(from, to + n * edge.getN(), 1);
-                        } else {
-                            labels.get(rhs).set(from + n * edge.getN(), to, 1);
-                        }
-                    } else {
-                        labels.get(rhs).set(from, to, 1);
-                    }
-                }
-            }
         }
 
         return labels;
