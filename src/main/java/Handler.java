@@ -27,50 +27,50 @@ public class Handler {
 
     public static HashMap<String, AbstractMatrix> makeMatrix(Grammar grammar, List<Edge> edges, Optimizations optimizations) {
         HashMap<String, AbstractMatrix> labels = createMatrixForKey(grammar, edges, optimizations);
-        
+
         edges.parallelStream().forEach(edge -> processEdge(edge, labels, grammar));
 
         return labels;
     }
 
     private static void processEdge(Edge edge, HashMap<String, AbstractMatrix> labels, Grammar grammar) {
-       boolean endsWithI;
+        boolean endsWithI;
 
-       int from = edge.getStart();
-       int to = edge.getFinish();
-       String label = edge.getLabel();
+        int from = edge.getStart();
+        int to = edge.getFinish();
+        String label = edge.getLabel();
 
-       if (from <= n && to <= n) {
-           AbstractMatrix matrix = labels.get(label);
-           synchronized (matrix) {
-               if (edge.hasN()) {
-                   if (grammar.isLhsR(label) && ((to + n * edge.getN()) < (matrix.getNumCols()))) {
-                       matrix.set(from, to + n * edge.getN(), 1);
-                   } else {
-                       matrix.set(from + n * edge.getN(), to, 1);
-                   }
-               } else {
-                   matrix.set(from, to, 1);
-               }
-           }
+        if (from <= n && to <= n) {
+            AbstractMatrix matrix = labels.get(label);
+            synchronized (matrix) {
+                if (edge.hasN()) {
+                    if (grammar.isLhsR(label) && ((to + n * edge.getN()) < (matrix.getNumCols()))) {
+                        matrix.set(from, to + n * edge.getN(), 1);
+                    } else {
+                        matrix.set(from + n * edge.getN(), to, 1);
+                    }
+                } else {
+                    matrix.set(from, to, 1);
+                }
+            }
 
-           String rhs = grammar.getRHSByLHS(label);
+            String rhs = grammar.getRHSByLHS(label);
 
-           if (rhs != null) {
-               AbstractMatrix rhsMatrix = labels.get(rhs);
-               synchronized (rhsMatrix) {
-                   endsWithI = rhs.endsWith("_i");
-                   if (edge.hasN() && endsWithI) {
-                       if (grammar.isLhsR(label) && ((to + n * edge.getN()) < (rhsMatrix.getNumCols()))) {
-                           rhsMatrix.set(from, to + n * edge.getN(), 1);
-                       } else {
-                           rhsMatrix.set(from + n * edge.getN(), to, 1);
-                       }
-                   } else {
-                       rhsMatrix.set(from, to, 1);
-                   }
-               }
-           }
+            if (rhs != null) {
+                AbstractMatrix rhsMatrix = labels.get(rhs);
+                synchronized (rhsMatrix) {
+                    endsWithI = rhs.endsWith("_i");
+                    if (edge.hasN() && endsWithI) {
+                        if (grammar.isLhsR(label) && ((to + n * edge.getN()) < (rhsMatrix.getNumCols()))) {
+                            rhsMatrix.set(from, to + n * edge.getN(), 1);
+                        } else {
+                            rhsMatrix.set(from + n * edge.getN(), to, 1);
+                        }
+                    } else {
+                        rhsMatrix.set(from, to, 1);
+                    }
+                }
+            }
         }
     }
 
@@ -127,7 +127,8 @@ public class Handler {
     public static List<Edge> readEdgesFromFile(String filename, Grammar grammar) {
         List<Edge> edges = new ArrayList<>();
 
-        Set<Integer> nums = new HashSet<>();
+        int maxN = -1;
+        int maxAB;
         int counter = 1;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
@@ -137,8 +138,8 @@ public class Handler {
                 if (parts.length >= 3 && parts.length <= 4) {
                     int start = Integer.parseInt(parts[0]);
                     int finish = Integer.parseInt(parts[1]);
-                    nums.add(start);
-                    nums.add(finish);
+                    maxAB = Math.max(start, finish);
+                    maxN = Math.max(maxAB, maxN);
                     String label = parts[2];
                     grammar.addLetters(label);
                     Edge edge = new Edge(start, finish, label);
@@ -155,7 +156,7 @@ public class Handler {
             System.err.println("Error reading file: " + e.getMessage());
         }
 
-        n = nums.size();
+        n = maxN + 1;
         block_size = counter + 1;
 
         return edges;
