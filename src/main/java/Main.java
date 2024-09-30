@@ -75,7 +75,7 @@ public class Main {
                 }
 
                 System.out.println(++s);
-
+       
                 String key1 = a.getLHSL();
                 String key2 = a.getLHSR();
                 String production = a.getRHS();
@@ -103,15 +103,14 @@ public class Main {
                         }
                     } else {
                         if (!optimizations.isOpt3() && !optimizations.isOpt5()) {
-                            for (String key : labels.keySet()) {
+                            if (upgrade) {
+                                labels.get(productionBefore).add(old.get(productionBefore), storage, 1);
 
-                                labels.get(key).add(old.get(key), storage, 1);
-
-                                if (storage.getMatrix(1).nz_length() != old.get(key).nz_length()) {
+                                if (storage.getMatrix(1).nz_length() != old.get(productionBefore).nz_length()) {
                                     changed = true;
                                 }
 
-                                old.put(key, storage.getMatrix(1).copy());
+                                old.put(productionBefore, storage.getMatrix(1).copy());
                             }
                         } else {
                             if (upgrade) {
@@ -134,7 +133,7 @@ public class Main {
                         changed = true;
                         upgrade = true;
                     } else {
-                        upgrade = false;
+                        upgrade = (!optimizations.isOpt3() && !optimizations.isOpt5()) && tmp.nz_length() != 0;
                     }
 
                     productionBefore = production;

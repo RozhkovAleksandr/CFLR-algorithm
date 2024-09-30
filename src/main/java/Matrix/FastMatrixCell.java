@@ -37,7 +37,7 @@ public class FastMatrixCell extends AbstractMatrix {
             for (DMatrixSparseCSC m : matrices) {
 
                 multHelper(m, BlockHelper.revolutionToTheHorizon(other.matrix), tmp);
-                CommonOps_DSCC.add(1.0, BlockHelper.revolutionToTheHorizon(tmp), 1.0, asistant.getMatrix(n).copy().matrix, asistant.getMatrix(n).matrix, null, null);
+                CommonOps_DSCC.add(1.0, tmp, 1.0, asistant.getMatrix(n).copy().matrix, asistant.getMatrix(n).matrix, null, null);
             }
 
             if (!production.endsWith("_i")) {
@@ -68,7 +68,7 @@ public class FastMatrixCell extends AbstractMatrix {
 
                 multHelper(BlockHelper.revolutionToTheVertical(other), m, tmp);
 
-                CommonOps_DSCC.add(1.0, BlockHelper.revolutionToTheVertical(tmp), 1.0, asistant.getMatrix(n).copy().matrix, asistant.getMatrix(n).matrix,
+                CommonOps_DSCC.add(1.0, tmp, 1.0, asistant.getMatrix(n).copy().matrix, asistant.getMatrix(n).matrix,
                         null, null);
             }
 

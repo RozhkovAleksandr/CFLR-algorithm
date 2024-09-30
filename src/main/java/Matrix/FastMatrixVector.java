@@ -25,12 +25,12 @@ public class FastMatrixVector extends AbstractMatrix {
         if (isVector(other.matrix)) {
             for (DMatrixSparseCSC m : matrices) {
                 multHelper(BlockHelper.toDiagMatrix(m), BlockHelper.revolutionToTheVertical(other.matrix), tmp);
-                CommonOps_DSCC.add(1.0, BlockHelper.revolutionToTheVertical(tmp), 1.0, asistant.getMatrix("vertical", n).copy().matrix, asistant.getMatrix("vertical", n).matrix, null, null);
+                CommonOps_DSCC.add(1.0, tmp, 1.0, asistant.getMatrix("vertical", n).copy().matrix, asistant.getMatrix("vertical", n).matrix, null, null);
             }
         } else {
             for (DMatrixSparseCSC m : matrices) {
                 multHelper(BlockHelper.revolutionToTheVertical(m), other.matrix, tmp);
-                CommonOps_DSCC.add(1.0, BlockHelper.revolutionToTheVertical(tmp), 1.0, asistant.getMatrix("vertical", n).copy().matrix, asistant.getMatrix("vertical", n).matrix, null, null);
+                CommonOps_DSCC.add(1.0, tmp, 1.0, asistant.getMatrix("vertical", n).copy().matrix, asistant.getMatrix("vertical", n).matrix, null, null);
             }
         }
 
@@ -48,14 +48,14 @@ public class FastMatrixVector extends AbstractMatrix {
             for (DMatrixSparseCSC m : matrices) {
 
                 multHelper(BlockHelper.toDiagMatrix(other), BlockHelper.revolutionToTheVertical(m), tmp);
-                CommonOps_DSCC.add(1.0, BlockHelper.revolutionToTheVertical(tmp), 1.0, asistant.getMatrix(n).copy().matrix, asistant.getMatrix(n).matrix, null, null);
+                CommonOps_DSCC.add(1.0, tmp, 1.0, asistant.getMatrix(n).copy().matrix, asistant.getMatrix(n).matrix, null, null);
             }
         } else {
             tmp = new DMatrixSparseCSC(Math.min(matrix.numCols, matrix.numRows), Math.max(matrix.numCols, matrix.numRows));
             asistant.getMatrix("horizon", n).matrix.zero();
             for (DMatrixSparseCSC m : matrices) {
                 multHelper(other, BlockHelper.revolutionToTheHorizon(m), tmp);
-                CommonOps_DSCC.add(1.0, BlockHelper.revolutionToTheHorizon(tmp), 1.0, asistant.getMatrix(n).copy().matrix, asistant.getMatrix(n).matrix, null, null);
+                CommonOps_DSCC.add(1.0, tmp, 1.0, asistant.getMatrix(n).copy().matrix, asistant.getMatrix(n).matrix, null, null);
             }
         }
 

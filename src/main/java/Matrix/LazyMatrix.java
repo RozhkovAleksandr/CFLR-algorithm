@@ -1,7 +1,7 @@
 package Matrix;
 
 import java.util.HashSet;
-import java.util.Iterator;
+
 
 import org.ejml.data.DMatrixSparseCSC;
 import org.ejml.sparse.csc.CommonOps_DSCC;
@@ -83,14 +83,6 @@ public class LazyMatrix extends AbstractMatrix {
         asistant.getMatrix(n).matrix.zero();
         for (DMatrixSparseCSC m : matrices) {
             CommonOps_DSCC.add(1.0, m, 1.0, asistant.getMatrix(n).copy().matrix, asistant.getMatrix(n).matrix, null, null);
-        }
-    }
-
-    @Override
-    public void set(int row, int col, double value) {
-        Iterator<DMatrixSparseCSC> iterator = matrices.iterator();
-        if (iterator.hasNext()) {
-            iterator.next().set(row, col, value);
         }
     }
 

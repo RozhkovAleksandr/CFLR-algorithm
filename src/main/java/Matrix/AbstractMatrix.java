@@ -14,11 +14,11 @@ abstract public class AbstractMatrix {
 
     public abstract void add(AbstractMatrix other, AsistantMatrix asistant, int n);
 
-    public int nz_length() {
+    public final int nz_length() {
         return matrix.nz_length;
     }
 
-    public double get(int row, int col) {
+    public final double get(int row, int col) {
         return matrix.get(row, col);
     }
 
@@ -30,39 +30,39 @@ abstract public class AbstractMatrix {
         return null;
     }
 
-    public void set(int row, int col, double value) {
+    public final void set(int row, int col, double value) {
         matrix.set(row, col, value);
     }
 
-    public int getNumRows() {
+    public final int getNumRows() {
         return matrix.numRows;
     }
 
-    public int getNumCols() {
+    public final int getNumCols() {
         return matrix.numCols;
     }
 
-    public void print() {
+    public final void print() {
         matrix.print();
     }
 
-    public int col_idx(int col) {
+    public final int col_idx(int col) {
         return matrix.col_idx[col];
     }
 
-    public int[] col_idx() {
+    public final int[] col_idx() {
         return matrix.col_idx;
     }
 
-    public int nz_rows(int col) {
+    public final int nz_rows(int col) {
         return matrix.nz_rows[col];
     }
 
-    public int[] nz_rows() {
+    public final int[] nz_rows() {
         return matrix.nz_rows;
     }
 
-    public double nz_values(int col) {
+    public final double nz_values(int col) {
         return matrix.nz_values[col];
     }
 
