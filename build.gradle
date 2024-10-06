@@ -22,8 +22,6 @@ dependencies {
 tasks.named('test', Test) {
     useJUnitPlatform()
 
-    maxHeapSize = '1G'
-
     testLogging {
         events "passed"
     }
@@ -37,8 +35,11 @@ jacocoTestReport {
         xml.required.set(true)
         csv.required.set(true)
         html.required.set(true)
-        html.outputLocation.set(layout.buildDirectory.dir('reports/jacoco/test')) 
+        html.outputLocation.set(layout.buildDirectory.dir('reports/jacoco/test'))
     }
 }
 
-mainClassName = 'Main'
+application {
+    mainClassName = 'Main'
+    applicationDefaultJvmArgs = ['-Xmx15g']
+}

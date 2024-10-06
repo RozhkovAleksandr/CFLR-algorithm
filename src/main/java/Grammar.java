@@ -5,6 +5,7 @@ import java.util.Set;
 
 public class Grammar {
     private final Set<String> letters;
+    private final Set<String> nonterminal;
     private final Set<Production> productionRules;
     private Set<String> lhsL;
     private Set<String> lhsR;
@@ -18,9 +19,18 @@ public class Grammar {
         this.lhsR = new HashSet<>();
         this.epsilonValues = new HashSet<>();
         this.vertical = new HashSet<>();
+        this.nonterminal = new HashSet<>();
     }
 
     public boolean isVertical(String letter) {
+        return vertical.contains(letter);
+    }
+
+    public void addNonTerminal(String letter) {
+        nonterminal.add(letter);
+    }
+
+    public boolean isNonTerminal(String letter) {
         return vertical.contains(letter);
     }
 

@@ -31,5 +31,5 @@ Arguments:
 
 ### Output
 
-The program will display the result of the recognition process, indicating how many paths have been found. Additionally, all reachable pairs of vertices will be saved in a file named **reachability_pairs.txt**.
+The program will display the result of the recognition process, indicating how many paths have been found. Additionally, all reachable pairs of vertices will be saved in a file named **reachability_pairs.txt**. It will also display the execution time of the algorithm.
 

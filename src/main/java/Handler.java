@@ -142,6 +142,7 @@ public class Handler {
                     maxN = Math.max(maxAB, maxN);
                     String label = parts[2];
                     grammar.addLetters(label);
+                    grammar.addNonTerminal(label);
                     Edge edge = new Edge(start, finish, label);
                     if (parts.length == 4) {
                         edge.setN(Integer.parseInt(parts[3]));
@@ -176,9 +177,9 @@ public class Handler {
         grammar.addNewRules();
     }
 
-    public static void checkingEpsilonCases(Grammar.Production a, HashMap<String, AbstractMatrix> labels, Optimizations opt) {
+    public static void checkingEpsilonCases(Grammar.Production a, HashMap<String, AbstractMatrix> labels, Grammar grammar) {
 
-        if (a.getLHS() != null) {
+        if (a.getLHS() != null && !grammar.isNonTerminal(a.getLHS())) {
             boolean endsWithI = a.getLHS().endsWith("_i");
             boolean endsWithI2 = a.getRHS().endsWith("_i");
 
@@ -193,24 +194,12 @@ public class Handler {
                             CommonOps_DSCC.add(1.0, labels.get(a.getRHS()).copy().matrix, 1.0, labels.get(a.getLHS()).matrix, labels.get(a.getRHS()).matrix, null, null);
                         }
                     }
-
                     break;
                 case 0:
                     CommonOps_DSCC.add(1.0, labels.get(a.getRHS()).copy().matrix, 1.0, labels.get(a.getLHS()).matrix, labels.get(a.getRHS()).matrix, null, null);
                     break;
                 case 2:
-                    int minimum = Math.min(labels.get(a.getLHS()).getNumCols(), labels.get(a.getLHS()).getNumRows());
-
-                    for (int col = 0; col < labels.get(a.getLHS()).getNumCols(); col++) {
-                        int colStart = labels.get(a.getLHS()).col_idx(col);
-                        int colEnd = labels.get(a.getLHS()).col_idx(col + 1);
-
-                        for (int idx = colStart; idx < colEnd; idx++) {
-                            int row = labels.get(a.getLHS()).nz_rows(idx);
-
-                            labels.get(a.getRHS()).set(row % minimum, col % minimum, 1);
-                        }
-                    }
+                    CommonOps_DSCC.add(1.0, labels.get(a.getRHS()).copy().matrix, 1.0,BlockHelper.reverse(labels.get(a.getLHS()).matrix), labels.get(a.getRHS()).matrix, null, null);
                     break;
                 default:
                     throw new IllegalArgumentException("Incorrect grammar. there is no support for the A_i <- a rule");

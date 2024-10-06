@@ -63,19 +63,17 @@ public class Main {
         boolean changed;
         boolean firstStart = true;
         boolean upgrade = false;
+
         String productionBefore = "start";
-        int s = 0;
-        System.out.println("START");
+        long startTime = System.nanoTime();
         do {
             changed = false;
             for (Grammar.Production a : grammar.getProductions()) {
                 if (a.getLHSL() == null) {
-                    Handler.checkingEpsilonCases(a, labels, optimizations);
+                    Handler.checkingEpsilonCases(a, labels, grammar);
                     continue;
                 }
 
-                System.out.println(++s);
-       
                 String key1 = a.getLHSL();
                 String key2 = a.getLHSR();
                 String production = a.getRHS();
@@ -103,6 +101,7 @@ public class Main {
                         }
                     } else {
                         if (!optimizations.isOpt3() && !optimizations.isOpt5()) {
+                            // upgrade - Checking for changes to a specific nonterminal
                             if (upgrade) {
                                 labels.get(productionBefore).add(old.get(productionBefore), storage, 1);
 
@@ -154,6 +153,8 @@ public class Main {
                 }
             }
         } while (changed);
+        long endTime = System.nanoTime();
+        System.out.println("Time: " + (endTime - startTime) / 1000000000.0 + " с");
 
         if (optimizations.isOpt3() || optimizations.isOpt5()) {
             old.get(ultimate).toOne(storage, 1);
